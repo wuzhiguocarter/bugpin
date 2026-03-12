@@ -23,6 +23,7 @@ import {
 import { SyncExistingReportsDialog } from './SyncExistingReportsDialog';
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -48,7 +49,6 @@ import { Spinner } from './ui/spinner';
 import { toast } from 'sonner';
 import { Checkbox } from './ui/checkbox';
 import { Switch } from './ui/switch';
-import { GitHubTokenHelpDialog } from './GitHubTokenHelpDialog';
 
 interface IntegrationDialogProps {
   open: boolean;
@@ -109,7 +109,6 @@ export function IntegrationDialog({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [repositories, setRepositories] = useState<GitHubRepository[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<string>('');
-  const [showTokenHelp, setShowTokenHelp] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<GitHubLabel[]>([]);
   const [availableAssignees, setAvailableAssignees] = useState<GitHubAssignee[]>([]);
   const [enableLabels, setEnableLabels] = useState(false);
@@ -117,6 +116,7 @@ export function IntegrationDialog({
   const [labelsError, setLabelsError] = useState(false);
   const [assigneesError, setAssigneesError] = useState(false);
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [fileTransferMode, setFileTransferMode] = useState<'link' | 'upload'>('link');
   const [syncMode, setSyncMode] = useState<GitHubSyncMode>('manual');
   const [showSyncDialog, setShowSyncDialog] = useState(false);
   const [pendingUnsyncedCount, setPendingUnsyncedCount] = useState(0);
@@ -136,9 +136,36 @@ export function IntegrationDialog({
         });
         setSelectedLabels(config.labels || []);
         setSelectedAssignees(config.assignees || []);
-        setEnableLabels((config.labels?.length ?? 0) > 0);
-        setEnableAssignees((config.assignees?.length ?? 0) > 0);
+        const hasLabels = (config.labels?.length ?? 0) > 0;
+        const hasAssignees = (config.assignees?.length ?? 0) > 0;
+        setEnableLabels(hasLabels);
+        setEnableAssignees(hasAssignees);
+        setFileTransferMode(config.fileTransferMode || 'link');
         setSyncMode(config.syncMode || 'manual');
+
+        // Auto-fetch labels and assignees for editing when toggles are enabled
+        if (hasLabels && config.owner && config.repo) {
+          fetchLabelsMutation
+            .mutateAsync({
+              accessToken: '',
+              owner: config.owner,
+              repo: config.repo,
+              integrationId: integration.id,
+            })
+            .then(setAvailableLabels)
+            .catch(() => setLabelsError(true));
+        }
+        if (hasAssignees && config.owner && config.repo) {
+          fetchAssigneesMutation
+            .mutateAsync({
+              accessToken: '',
+              owner: config.owner,
+              repo: config.repo,
+              integrationId: integration.id,
+            })
+            .then(setAvailableAssignees)
+            .catch(() => setAssigneesError(true));
+        }
       } else {
         // Reset for new integration
         reset({
@@ -151,6 +178,7 @@ export function IntegrationDialog({
         setSelectedAssignees([]);
         setEnableLabels(false);
         setEnableAssignees(false);
+        setFileTransferMode('link');
         setSyncMode('manual');
       }
       setRepositories([]);
@@ -207,6 +235,7 @@ export function IntegrationDialog({
           accessToken: watchedToken || '',
           owner: watchedOwner,
           repo: watchedRepo,
+          integrationId: integration?.id,
         });
         setAvailableLabels(result);
       } catch {
@@ -228,6 +257,7 @@ export function IntegrationDialog({
           accessToken: watchedToken || '',
           owner: watchedOwner,
           repo: watchedRepo,
+          integrationId: integration?.id,
         });
         setAvailableAssignees(result);
       } catch {
@@ -241,7 +271,11 @@ export function IntegrationDialog({
   };
 
   const handleSyncModeToggle = async (enabled: boolean) => {
-    if (!integration) return;
+    // For new integrations, just store the preference — sync will be enabled after creation
+    if (!integration) {
+      setSyncMode(enabled ? 'automatic' : 'manual');
+      return;
+    }
 
     if (enabled) {
       // Switching to automatic - check for unsynced reports
@@ -296,18 +330,10 @@ export function IntegrationDialog({
   };
 
   const handleTest = async () => {
-    if (!watchedOwner || !watchedRepo || !watchedToken) {
-      toast.error('Please fill in owner, repo, and access token to test the connection');
-      return;
-    }
-
     if (isEditing && integration) {
-      const result = await testMutation.mutateAsync(integration.id);
-      if (result.success) {
-        toast.success('Connection successful!');
-      } else {
-        toast.error(`Connection failed: ${result.error || 'Unknown error'}`);
-      }
+      // Editing: test uses the stored token via integration ID
+      // Toast is handled by the useTestIntegration hook
+      await testMutation.mutateAsync(integration.id);
     } else {
       toast.error('Save the integration first to test the connection');
     }
@@ -321,6 +347,7 @@ export function IntegrationDialog({
         data.accessToken?.trim() || (integration?.config as GitHubIntegrationConfig).accessToken,
       labels: selectedLabels.length > 0 ? selectedLabels : undefined,
       assignees: selectedAssignees.length > 0 ? selectedAssignees : undefined,
+      fileTransferMode,
     };
 
     try {
@@ -343,12 +370,23 @@ export function IntegrationDialog({
           data: updateData,
         });
       } else {
-        await createMutation.mutateAsync({
+        const created = await createMutation.mutateAsync({
           projectId,
           type: 'github' as IntegrationType,
           name: data.name.trim(),
           config,
         });
+
+        // Enable automatic sync after creation if the user toggled it on
+        if (syncMode === 'automatic' && created?.id) {
+          try {
+            await setSyncModeMutation.mutateAsync({ id: created.id, syncMode: 'automatic' });
+          } catch {
+            toast.error(
+              'Integration created, but automatic sync could not be enabled. You can enable it by editing the integration.',
+            );
+          }
+        }
       }
       onClose();
     } catch (err) {
@@ -362,8 +400,8 @@ export function IntegrationDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-3xl">
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh]">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <DialogHeader>
               <DialogTitle>{isEditing ? 'Edit Integration' : 'Add Integration'}</DialogTitle>
               <DialogDescription>
@@ -371,7 +409,7 @@ export function IntegrationDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-4">
+            <DialogBody className="space-y-3 flex-1">
               <div className="space-y-2">
                 <Label htmlFor="name">
                   Integration Name <span className="text-destructive">*</span>
@@ -447,14 +485,15 @@ export function IntegrationDialog({
                 )}
 
                 <p className="text-sm text-muted-foreground">
-                  <button
-                    type="button"
-                    onClick={() => setShowTokenHelp(true)}
+                  <a
+                    href="https://docs.bugpin.io/integrations/github"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:underline"
                   >
                     <HelpCircle className="h-3.5 w-3.5" />
                     How to create a GitHub token
-                  </button>
+                  </a>
                   {(!isEditing || showTokenInput) && (
                     <>
                       {' · '}
@@ -520,16 +559,9 @@ export function IntegrationDialog({
               </div>
 
               {/* Labels Toggle */}
-              <div className="space-y-3 border rounded-lg p-4">
+              <div className="space-y-2 border rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="enable-labels" className="text-base">
-                      Add labels to issues
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Automatically apply labels when forwarding reports
-                    </p>
-                  </div>
+                  <Label htmlFor="enable-labels">Add labels to issues</Label>
                   <Switch
                     id="enable-labels"
                     checked={enableLabels}
@@ -541,24 +573,17 @@ export function IntegrationDialog({
                 {enableLabels && (
                   <div className="pt-2 border-t">
                     {labelsError ? (
-                      <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4">
-                        <div className="flex items-start gap-2">
-                          <HelpCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                          <div className="text-amber-800 dark:text-amber-200">
-                            <p className="font-medium">Unable to load labels</p>
-                            <p className="mt-1 text-sm">
-                              Your token needs <strong>Metadata: Read</strong> permission.{' '}
-                              <button
-                                type="button"
-                                onClick={() => setShowTokenHelp(true)}
-                                className="underline hover:no-underline"
-                              >
-                                View token setup
-                              </button>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        Unable to load labels. Token needs <strong>Metadata: Read</strong> permission.{' '}
+                        <a
+                          href="https://docs.bugpin.io/integrations/github"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          View setup guide
+                        </a>
+                      </p>
                     ) : fetchLabelsMutation.isPending ? (
                       <p className="text-sm text-muted-foreground flex items-center gap-2">
                         <Spinner size="xs" />
@@ -566,7 +591,7 @@ export function IntegrationDialog({
                       </p>
                     ) : availableLabels.length > 0 ? (
                       <div className="space-y-2">
-                        <div className="border rounded-md p-3 max-h-32 overflow-y-auto space-y-2">
+                        <div className="border rounded-md p-2 max-h-28 overflow-y-auto space-y-1">
                           {availableLabels.map((label) => (
                             <div key={label.name} className="flex items-center space-x-2">
                               <Checkbox
@@ -611,16 +636,9 @@ export function IntegrationDialog({
               </div>
 
               {/* Assignees Toggle */}
-              <div className="space-y-3 border rounded-lg p-4">
+              <div className="space-y-2 border rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="enable-assignees" className="text-base">
-                      Assign issues to users
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Automatically assign team members when forwarding reports
-                    </p>
-                  </div>
+                  <Label htmlFor="enable-assignees">Assign issues to users</Label>
                   <Switch
                     id="enable-assignees"
                     checked={enableAssignees}
@@ -632,24 +650,17 @@ export function IntegrationDialog({
                 {enableAssignees && (
                   <div className="pt-2 border-t">
                     {assigneesError ? (
-                      <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4">
-                        <div className="flex items-start gap-2">
-                          <HelpCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                          <div className="text-amber-800 dark:text-amber-200">
-                            <p className="font-medium">Unable to load assignees</p>
-                            <p className="mt-1 text-sm">
-                              Your token needs <strong>Metadata: Read</strong> permission.{' '}
-                              <button
-                                type="button"
-                                onClick={() => setShowTokenHelp(true)}
-                                className="underline hover:no-underline"
-                              >
-                                View token setup
-                              </button>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        Unable to load assignees. Token needs <strong>Metadata: Read</strong> permission.{' '}
+                        <a
+                          href="https://docs.bugpin.io/integrations/github"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:no-underline"
+                        >
+                          View setup guide
+                        </a>
+                      </p>
                     ) : fetchAssigneesMutation.isPending ? (
                       <p className="text-sm text-muted-foreground flex items-center gap-2">
                         <Spinner size="xs" />
@@ -657,7 +668,7 @@ export function IntegrationDialog({
                       </p>
                     ) : availableAssignees.length > 0 ? (
                       <div className="space-y-2">
-                        <div className="border rounded-md p-3 max-h-32 overflow-y-auto space-y-2">
+                        <div className="border rounded-md p-2 max-h-28 overflow-y-auto space-y-1">
                           {availableAssignees.map((assignee) => (
                             <div key={assignee.login} className="flex items-center space-x-2">
                               <Checkbox
@@ -702,34 +713,50 @@ export function IntegrationDialog({
                 )}
               </div>
 
-              {/* Automatic Sync Toggle - Only show for existing integrations */}
-              {isEditing && (
-                <div className="space-y-3 border rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="enable-sync" className="text-base">
-                        Automatic sync
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically create GitHub issues for new reports
-                      </p>
-                    </div>
-                    <Switch
-                      id="enable-sync"
-                      checked={syncMode === 'automatic'}
-                      onCheckedChange={handleSyncModeToggle}
-                      disabled={setSyncModeMutation.isPending}
-                    />
-                  </div>
-                  {syncMode === 'automatic' && (
-                    <p className="text-xs text-muted-foreground pt-2 border-t">
-                      New reports will be automatically synced to GitHub. Changes to GitHub issues
-                      (closed/reopened) will update report status in BugPin.
-                    </p>
-                  )}
+              {/* File Transfer Mode Toggle */}
+              <div className="space-y-2 border rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="enable-upload">Upload files to GitHub</Label>
+                  <Switch
+                    id="enable-upload"
+                    checked={fileTransferMode === 'upload'}
+                    onCheckedChange={(checked) =>
+                      setFileTransferMode(checked ? 'upload' : 'link')
+                    }
+                  />
                 </div>
-              )}
-            </div>
+                {fileTransferMode === 'upload' && (
+                  <p className="text-xs text-muted-foreground pt-2 border-t">
+                    Files under 10 MB uploaded to{' '}
+                    {watchedOwner && watchedRepo
+                      ? `${watchedOwner}/${watchedRepo}`
+                      : 'your repository'}
+                    . Requires{' '}
+                    <strong>Contents: Read and write</strong> permission (fine-grained) or{' '}
+                    <code className="px-1 py-0.5 bg-muted rounded">repo</code> scope (classic).
+                  </p>
+                )}
+              </div>
+
+              {/* Automatic Sync Toggle */}
+              <div className="space-y-2 border rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="enable-sync">Automatic sync</Label>
+                  <Switch
+                    id="enable-sync"
+                    checked={syncMode === 'automatic'}
+                    onCheckedChange={handleSyncModeToggle}
+                    disabled={setSyncModeMutation.isPending}
+                  />
+                </div>
+                {syncMode === 'automatic' && (
+                  <p className="text-xs text-muted-foreground pt-2 border-t">
+                    New reports synced automatically. GitHub issue changes (closed/reopened) update
+                    BugPin status.
+                  </p>
+                )}
+              </div>
+            </DialogBody>
 
             <DialogFooter>
               {isEditing && (
@@ -768,8 +795,6 @@ export function IntegrationDialog({
           </form>
         </DialogContent>
       </Dialog>
-
-      <GitHubTokenHelpDialog open={showTokenHelp} onClose={() => setShowTokenHelp(false)} />
 
       {integration && (
         <SyncExistingReportsDialog

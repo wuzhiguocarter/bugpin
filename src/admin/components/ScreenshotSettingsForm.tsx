@@ -1,3 +1,4 @@
+import { ExternalLink } from 'lucide-react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Switch } from './ui/switch';
@@ -103,24 +104,27 @@ export function ScreenshotSettingsForm({
             <Alert className="mt-3">
               <AlertDescription className="text-sm space-y-2">
                 <p>
-                  <strong>Default (DOM Capture):</strong> Automatically captures your app UI without
-                  user permission. Fast, privacy-friendly, and works for most layout bugs. Does not
-                  capture videos, canvas, or WebGL content accurately.
+                  <strong>Default (DOM Capture):</strong> Captures the page without requiring user
+                  permission. Fast, seamless, and works for most layouts. Does not capture
+                  videos, canvas, or WebGL content accurately.
                 </p>
                 <p>
-                  <strong>Screen Capture API:</strong> Requires user permission to select which
-                  tab/window to capture. Provides pixel-perfect screenshots including videos,
-                  canvas, WebGL, and exactly what the user sees. Higher friction but more accurate
-                  for complex visual bugs.
+                  <strong>Screen Capture API:</strong> Enable for websites (WordPress, Wix, etc.)
+                  that load stylesheets or fonts from external domains (CDNs, Google Fonts, etc.).
+                  These cross-origin resources cannot be captured automatically, resulting in
+                  missing fonts and blank images. Also captures videos, canvas, and WebGL. The
+                  browser will prompt the user for permission before each capture.
                 </p>
-              </AlertDescription>
-            </Alert>
-            <Alert className="mt-3">
-              <AlertDescription className="text-sm space-y-2">
                 <p>
-                  <strong>Recommended:</strong> Keep disabled for general use. Enable only if you
-                  need to capture video players, canvas graphics, or other dynamic content that
-                  doesn't render correctly with DOM capture.
+                  <a
+                    href="https://docs.bugpin.io/configuration/widget#screen-capture-api"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                  >
+                    View documentation
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 </p>
               </AlertDescription>
             </Alert>

@@ -251,6 +251,11 @@ function getCaptureDefaults(): ToCanvasOptions {
   return {
     skipFonts: crossOrigin,
     imagePlaceholder: TRANSPARENT_PIXEL,
+    // Prevent html-to-image from rejecting when a cloned <img> fails to render.
+    // This handles the case where fetch() succeeds (200) but returns non-image
+    // content (e.g. HTML error page from a CORS redirect), producing an invalid
+    // data URL that triggers img.onerror.
+    onImageErrorHandler: () => {},
   };
 }
 
@@ -286,7 +291,11 @@ async function captureWithScreenCaptureAPI(): Promise<string> {
       displaySurface: 'browser',
     } as MediaTrackConstraints,
     audio: false,
-  });
+    // Chrome/Edge 94+: pre-selects the current tab so the user only needs to
+    // click Share rather than hunt for their tab in the picker. Firefox and
+    // Safari ignore this option gracefully.
+    preferCurrentTab: true,
+  } as DisplayMediaStreamOptions & { preferCurrentTab?: boolean });
 
   try {
     const video = document.createElement('video');
@@ -328,8 +337,9 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
       return await captureWithScreenCaptureAPI();
     } catch (error) {
       console.warn(
-        '[BugPin] Screen Capture API unavailable, falling back to DOM capture:',
-        error instanceof Error ? error.message : error,
+        '[BugPin] Screen Capture API unavailable, falling back to DOM capture.',
+        'Ensure the page is served over HTTPS and the browser has screen recording permission.',
+        `(${error instanceof Error ? error.message : error})`,
       );
     }
   }
