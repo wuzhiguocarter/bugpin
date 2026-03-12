@@ -41,7 +41,7 @@ describe('Login Page', () => {
   it('shows BugPin branding', () => {
     renderLogin();
 
-    expect(screen.getByText(/bugpin/i)).toBeInTheDocument();
+    expect(screen.getAllByAltText(/bugpin/i).length).toBeGreaterThan(0);
   });
 
   it('email field is required', async () => {
