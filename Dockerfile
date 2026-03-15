@@ -22,6 +22,13 @@ RUN bun install; exit 0
 # Copy source code
 COPY . .
 
+# Stamp version from build arg (set by CI from git tag) into package.json
+# so both the admin build and server runtime pick it up automatically
+ARG APP_VERSION
+RUN if [ -n "$APP_VERSION" ]; then \
+    node -e "const fs=require('fs');const p='./package.json';const j=JSON.parse(fs.readFileSync(p));j.version='$APP_VERSION';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n');"; \
+  fi
+
 # Build admin portal and widget
 RUN bun run build:admin && bun run build:widget
 
