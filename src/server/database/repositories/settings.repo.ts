@@ -62,7 +62,9 @@ const DEFAULT_WIDGET_DIALOG: ThemeColors = {
 
 const DEFAULT_SCREENSHOT: GlobalScreenshotSettings = {
   useScreenCaptureAPI: false,
-  maxScreenshotSize: 10,
+  maxScreenshotSize: 5,
+  maxImageUploadSizeMb: 10,
+  maxVideoUploadSizeMb: 50,
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationDefaultSettings = {

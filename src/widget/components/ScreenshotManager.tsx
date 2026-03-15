@@ -22,10 +22,12 @@ interface ScreenshotManagerProps {
   onAnnotate: (id: string) => void;
   isCapturing: boolean;
   enableAnnotation: boolean;
+  maxImageSize?: number;
+  maxVideoSize?: number;
 }
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+const DEFAULT_MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+const DEFAULT_MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
 const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
 
@@ -37,6 +39,8 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
   onAnnotate,
   isCapturing,
   enableAnnotation,
+  maxImageSize = DEFAULT_MAX_IMAGE_SIZE,
+  maxVideoSize = DEFAULT_MAX_VIDEO_SIZE,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -45,26 +49,29 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
   const isVideo = (mimeType: string) => mimeType.startsWith('video/');
   const isImage = (mimeType: string) => mimeType.startsWith('image/');
 
+  const maxImageSizeMb = Math.round(maxImageSize / (1024 * 1024));
+  const maxVideoSizeMb = Math.round(maxVideoSize / (1024 * 1024));
+
   const validateFile = useCallback((file: File): string | null => {
     if (isImage(file.type)) {
       if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
         return `Unsupported image format: ${file.type}`;
       }
-      if (file.size > MAX_IMAGE_SIZE) {
-        return `Image too large. Maximum size is 10MB.`;
+      if (file.size > maxImageSize) {
+        return `Image too large. Maximum size is ${maxImageSizeMb}MB.`;
       }
     } else if (isVideo(file.type)) {
       if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
         return `Unsupported video format: ${file.type}`;
       }
-      if (file.size > MAX_VIDEO_SIZE) {
-        return `Video too large. Maximum size is 50MB.`;
+      if (file.size > maxVideoSize) {
+        return `Video too large. Maximum size is ${maxVideoSizeMb}MB.`;
       }
     } else {
       return `Unsupported file type: ${file.type}`;
     }
     return null;
-  }, []);
+  }, [maxImageSize, maxImageSizeMb, maxVideoSize, maxVideoSizeMb]);
 
   const processFile = useCallback(
     async (file: File) => {
@@ -330,7 +337,7 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
 
       {/* Helper text */}
       <p class="text-xs text-muted-foreground text-center">
-        Supported: PNG, JPG, GIF, WebP (max 10MB) - MP4, WebM, MOV, AVI (max 50MB)
+        Supported: PNG, JPG, GIF, WebP (max {maxImageSizeMb}MB) - MP4, WebM, MOV, AVI (max {maxVideoSizeMb}MB)
       </p>
     </div>
   );

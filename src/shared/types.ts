@@ -170,6 +170,8 @@ export interface WidgetDialogSettings {
 export interface ScreenshotSettings {
   useScreenCaptureAPI?: boolean;
   maxScreenshotSize?: number;
+  maxImageUploadSizeMb?: number;
+  maxVideoUploadSizeMb?: number;
 }
 
 // Project Types
@@ -411,6 +413,8 @@ export interface GlobalWidgetLauncherButtonSettings {
 export interface GlobalScreenshotSettings {
   useScreenCaptureAPI: boolean;
   maxScreenshotSize: number;
+  maxImageUploadSizeMb: number;
+  maxVideoUploadSizeMb: number;
 }
 
 // Settings Types

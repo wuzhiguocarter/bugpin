@@ -187,7 +187,7 @@ export const schemas = {
 
   // Update report request
   updateReport: z.object({
-    title: z.string().min(4).max(200).optional(),
+    title: z.string().min(4).max(500).optional(),
     description: z.string().optional(),
     status: z.enum(['open', 'in_progress', 'resolved', 'closed']).optional(),
     priority: z.enum(['lowest', 'low', 'medium', 'high', 'highest']).optional(),
@@ -256,6 +256,8 @@ export const schemas = {
       .optional(),
     retentionDays: z.number().int().min(0).max(3650).optional(),
     maxScreenshotSizeMb: z.number().int().min(1).max(50).optional(),
+    maxImageUploadSizeMb: z.number().int().min(1).max(50).optional(),
+    maxVideoUploadSizeMb: z.number().int().min(1).max(500).optional(),
     rateLimitPerMinute: z.number().int().min(1).max(1000).optional(),
     sessionMaxAgeDays: z.number().int().min(1).max(365).optional(),
   }),
