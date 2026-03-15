@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { emailService } from '../../src/server/services/email.service';
 import { settingsRepo } from '../../src/server/database/repositories/settings.repo';
 import { settingsCacheService } from '../../src/server/services/settings-cache.service';
 import { logger } from '../../src/server/utils/logger';
@@ -6,18 +7,10 @@ import type { Report } from '../../src/shared/types';
 
 const sendMail = mock(async () => undefined);
 const verify = mock(async () => undefined);
-const createTransport = mock(() => ({ sendMail, verify }));
-
-mock.module('nodemailer', () => ({
-  default: {
-    createTransport,
-  },
-}));
-
-let emailService: typeof import('../../src/server/services/email.service').emailService;
 
 const originalSettingsRepo = { ...settingsRepo };
 const originalLogger = { ...logger };
+const originalCreateTransporter = emailService.createTransporter;
 
 const baseReport: Report = {
   id: 'rpt_1',
@@ -36,18 +29,15 @@ const baseReport: Report = {
   updatedAt: new Date().toISOString(),
 };
 
-beforeAll(async () => {
-  const mod = await import('../../src/server/services/email.service');
-  emailService = mod.emailService;
-});
-
 beforeEach(() => {
   sendMail.mockClear();
   verify.mockClear();
-  createTransport.mockClear();
 
   // Invalidate settings cache so mocked settingsRepo.getAll takes effect
   settingsCacheService.invalidate();
+
+  // Mock createTransporter to return a fake transport
+  emailService.createTransporter = () => ({ sendMail, verify }) as never;
 
   settingsRepo.getAll = async () =>
     ({
@@ -65,11 +55,13 @@ beforeEach(() => {
   logger.info = () => undefined;
   logger.warn = () => undefined;
   logger.error = () => undefined;
+  logger.debug = () => undefined;
 });
 
 afterEach(() => {
   Object.assign(settingsRepo, originalSettingsRepo);
   Object.assign(logger, originalLogger);
+  emailService.createTransporter = originalCreateTransporter;
 });
 
 describe('emailService.sendEmail', () => {
@@ -115,7 +107,6 @@ describe('emailService.sendEmail', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(createTransport).toHaveBeenCalled();
     expect(sendMail).toHaveBeenCalled();
   });
 
