@@ -414,6 +414,8 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
           isSubmitting={isSubmitting}
           isCapturing={isCapturing}
           enableAnnotation={config.enableAnnotation}
+          maxImageSize={config.maxImageUploadSize}
+          maxVideoSize={config.maxVideoUploadSize}
           activeTab={activeTab}
           onActiveTabChange={setActiveTab}
           formData={formData}

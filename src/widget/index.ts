@@ -70,6 +70,12 @@ async function fetchConfig(
           enableConsoleCapture: cfg.features?.consoleCapture ?? true,
           captureMethod: cfg.captureMethod,
           useScreenCaptureAPI: cfg.useScreenCaptureAPI,
+          maxImageUploadSize: cfg.maxImageUploadSizeMb
+            ? cfg.maxImageUploadSizeMb * 1024 * 1024
+            : undefined,
+          maxVideoUploadSize: cfg.maxVideoUploadSizeMb
+            ? cfg.maxVideoUploadSizeMb * 1024 * 1024
+            : undefined,
         };
       }
     } else if (response.status === 403) {

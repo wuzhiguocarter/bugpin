@@ -78,6 +78,8 @@ const baseConfig: WidgetConfig = {
   captureMethod: 'visible',
   useScreenCaptureAPI: false,
   maxScreenshotSize: 5 * 1024 * 1024,
+  maxImageUploadSize: 10 * 1024 * 1024,
+  maxVideoUploadSize: 50 * 1024 * 1024,
 };
 
 const originalSetTimeout = globalThis.setTimeout;

@@ -5,6 +5,8 @@ import { projectsService } from '../../services/projects.service.js';
 import { settingsService } from '../../services/settings.service.js';
 import { dynamicRateLimiter, apiKeyGenerator } from '../../middleware/rate-limit.js';
 import { logger } from '../../utils/logger.js';
+import { ALLOWED_MEDIA_MIME_TYPES } from '../../storage/files.js';
+import { settingsCacheService } from '../../services/settings-cache.service.js';
 import type { ReportMetadata } from '@shared/types';
 
 const widget = new Hono();
@@ -181,9 +183,27 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
 
   const data = validation.data;
 
-  // Prepare media files data
+  // Filter and prepare media files data
+  const settings = await settingsCacheService.getAll();
+  const maxFileSizeBytes = (settings.screenshot.maxImageUploadSizeMb ?? 10) * 1024 * 1024;
+  const maxVideoSizeBytes = (settings.screenshot.maxVideoUploadSizeMb ?? 50) * 1024 * 1024;
+  const allowedTypes: readonly string[] = ALLOWED_MEDIA_MIME_TYPES;
+
   const media: Array<{ data: Buffer; filename: string; mimeType: string }> = [];
   for (const file of mediaFiles) {
+    // Early MIME type check before buffering
+    if (!allowedTypes.includes(file.type)) {
+      logger.warn('Media file rejected: invalid MIME type', { filename: file.name, mimeType: file.type });
+      continue;
+    }
+
+    // Early size check before buffering
+    const sizeLimit = file.type.startsWith('video/') ? maxVideoSizeBytes : maxFileSizeBytes;
+    if (file.size > sizeLimit) {
+      logger.warn('Media file rejected: too large', { filename: file.name, size: file.size, limit: sizeLimit });
+      continue;
+    }
+
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
       media.push({
@@ -261,6 +281,10 @@ widget.get('/config/:apiKey', async (c) => {
   // because null is a valid explicit value (e.g., "No Icon") and ?? would treat it as unset.
   const useScreenCaptureAPI =
     projScreenshot?.useScreenCaptureAPI ?? globalScreenshot.useScreenCaptureAPI;
+  const maxImageUploadSizeMb =
+    projScreenshot?.maxImageUploadSizeMb ?? globalScreenshot.maxImageUploadSizeMb;
+  const maxVideoUploadSizeMb =
+    projScreenshot?.maxVideoUploadSizeMb ?? globalScreenshot.maxVideoUploadSizeMb;
   const theme = projButton?.theme ?? globalButton.theme;
   const position = projButton?.position ?? globalButton.position;
   const buttonText =
@@ -373,6 +397,8 @@ widget.get('/config/:apiKey', async (c) => {
       tooltipText,
       captureMethod: 'visible', // Default capture method
       useScreenCaptureAPI,
+      maxImageUploadSizeMb,
+      maxVideoUploadSizeMb,
     },
   });
 });

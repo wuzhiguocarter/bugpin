@@ -1,7 +1,8 @@
 import { reportsRepo, type CreateReportData } from '../database/repositories/reports.repo.js';
 import { projectsRepo } from '../database/repositories/projects.repo.js';
 import { filesRepo } from '../database/repositories/files.repo.js';
-import { saveFile, deleteReportFiles, readFile } from '../storage/files.js';
+import { saveFile, deleteReportFiles, readFile, validateFile } from '../storage/files.js';
+import { settingsCacheService } from './settings-cache.service.js';
 import { Result } from '../utils/result.js';
 import { logger } from '../utils/logger.js';
 import { getEEHooks } from '../utils/ee-hooks.js';
@@ -90,12 +91,34 @@ export const reportsService = {
 
     // Save media files if provided
     if (input.media && input.media.length > 0) {
+      const settings = await settingsCacheService.getAll();
+      const maxImageSizeMb = settings.screenshot.maxImageUploadSizeMb ?? 10;
+      const maxVideoSizeMb = settings.screenshot.maxVideoUploadSizeMb ?? 50;
+
       for (const mediaFile of input.media) {
         try {
           // Determine file type from mime type
           const fileType: FileType = mediaFile.mimeType.startsWith('video/')
             ? 'video'
             : 'screenshot';
+
+          // Validate file before saving
+          const validation = validateFile({
+            data: mediaFile.data,
+            mimeType: mediaFile.mimeType,
+            type: fileType,
+            maxSizeMb: fileType === 'video' ? maxVideoSizeMb : maxImageSizeMb,
+          });
+
+          if (!validation.success) {
+            logger.warn('Media file rejected', {
+              reportId: report.id,
+              filename: mediaFile.filename,
+              reason: validation.error,
+              code: validation.code,
+            });
+            continue;
+          }
 
           const savedFile = await saveFile({
             reportId: report.id,
@@ -473,6 +496,22 @@ export const reportsService = {
 
     if (!report) {
       return Result.fail('Report not found', 'NOT_FOUND');
+    }
+
+    // Validate file before saving
+    const settings = await settingsCacheService.getAll();
+    const maxSizeMb = file.type === 'video'
+      ? (settings.screenshot.maxVideoUploadSizeMb ?? 50)
+      : (settings.screenshot.maxImageUploadSizeMb ?? 10);
+    const validation = validateFile({
+      data: file.data,
+      mimeType: file.mimeType,
+      type: file.type,
+      maxSizeMb,
+    });
+
+    if (!validation.success) {
+      return Result.fail(validation.error, validation.code);
     }
 
     try {

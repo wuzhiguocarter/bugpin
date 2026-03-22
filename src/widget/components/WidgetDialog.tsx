@@ -31,6 +31,8 @@ interface WidgetDialogProps {
   showScreenCaptureConsent: boolean;
   onConsentConfirm: () => void;
   onConsentCancel: () => void;
+  maxImageSize?: number;
+  maxVideoSize?: number;
 }
 
 const TABS = [
@@ -78,6 +80,8 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
   showScreenCaptureConsent,
   onConsentConfirm,
   onConsentCancel,
+  maxImageSize,
+  maxVideoSize,
 }) => {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
@@ -273,6 +277,8 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
                   onAnnotate={onAnnotateMedia}
                   isCapturing={isCapturing}
                   enableAnnotation={enableAnnotation}
+                  maxImageSize={maxImageSize}
+                  maxVideoSize={maxVideoSize}
                 />
               )}
             </div>

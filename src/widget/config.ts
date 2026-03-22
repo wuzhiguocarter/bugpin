@@ -45,6 +45,8 @@ export interface WidgetConfig {
   captureMethod: 'visible' | 'fullpage' | 'element';
   useScreenCaptureAPI: boolean;
   maxScreenshotSize: number;
+  maxImageUploadSize: number;
+  maxVideoUploadSize: number;
 }
 
 export const defaultConfig: WidgetConfig = {
@@ -94,4 +96,6 @@ export const defaultConfig: WidgetConfig = {
   captureMethod: 'visible',
   useScreenCaptureAPI: false,
   maxScreenshotSize: 5 * 1024 * 1024, // 5MB
+  maxImageUploadSize: 10 * 1024 * 1024, // 10MB
+  maxVideoUploadSize: 50 * 1024 * 1024, // 50MB
 };

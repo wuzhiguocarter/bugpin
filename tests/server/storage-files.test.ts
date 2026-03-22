@@ -13,6 +13,7 @@ import {
   saveAvatar,
   deleteAvatar,
   deleteAllAvatars,
+  validateFile,
 } from '../../src/server/storage/files';
 
 const originalConfig = { ...config };
@@ -202,5 +203,93 @@ describe('file storage', () => {
     fs.mkdirSync(dirPath, { recursive: true });
     expect(readFile(dirPath)).toBeNull();
     expect(await deleteFile(dirPath)).toBe(false);
+  });
+});
+
+describe('validateFile', () => {
+  it('accepts valid PNG screenshot', () => {
+    const result = validateFile({ data: pngBuffer, mimeType: 'image/png', type: 'screenshot' });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts valid JPEG screenshot', () => {
+    const result = validateFile({ data: jpegBuffer, mimeType: 'image/jpeg', type: 'screenshot' });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts valid WebP screenshot', () => {
+    const result = validateFile({ data: createWebpBufferVp8(10, 10), mimeType: 'image/webp', type: 'screenshot' });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts valid GIF screenshot', () => {
+    const gif = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00]);
+    const result = validateFile({ data: gif, mimeType: 'image/gif', type: 'screenshot' });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects disallowed MIME type for screenshot', () => {
+    const result = validateFile({ data: Buffer.from('hello'), mimeType: 'text/plain', type: 'screenshot' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_MIME_TYPE');
+    }
+  });
+
+  it('rejects disallowed MIME type for video', () => {
+    const result = validateFile({ data: pngBuffer, mimeType: 'image/png', type: 'video' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_MIME_TYPE');
+    }
+  });
+
+  it('rejects file exceeding size limit', () => {
+    const bigBuffer = Buffer.alloc(2 * 1024 * 1024); // 2MB
+    // Write PNG header so magic bytes pass
+    pngBuffer.copy(bigBuffer);
+    const result = validateFile({ data: bigBuffer, mimeType: 'image/png', type: 'screenshot', maxSizeMb: 1 });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('FILE_TOO_LARGE');
+    }
+  });
+
+  it('rejects file with mismatched magic bytes', () => {
+    // Claim PNG but provide JPEG bytes
+    const result = validateFile({ data: jpegBuffer, mimeType: 'image/png', type: 'screenshot' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_FILE_CONTENT');
+    }
+  });
+
+  it('rejects PNG magic bytes when declared as JPEG', () => {
+    const result = validateFile({ data: pngBuffer, mimeType: 'image/jpeg', type: 'screenshot' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_FILE_CONTENT');
+    }
+  });
+
+  it('accepts valid attachment types', () => {
+    const pdf = Buffer.from([0x25, 0x50, 0x44, 0x46]); // %PDF
+    const result = validateFile({ data: pdf, mimeType: 'application/pdf', type: 'attachment' });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects image MIME type for attachments', () => {
+    const result = validateFile({ data: pngBuffer, mimeType: 'image/png', type: 'attachment' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_MIME_TYPE');
+    }
+  });
+
+  it('uses default size limit when maxSizeMb not provided', () => {
+    const smallPng = Buffer.alloc(100);
+    pngBuffer.copy(smallPng);
+    const result = validateFile({ data: smallPng, mimeType: 'image/png', type: 'screenshot' });
+    expect(result.success).toBe(true);
   });
 });

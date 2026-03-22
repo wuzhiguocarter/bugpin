@@ -145,6 +145,8 @@ export function ProjectSettingsDialog({
       setScreenshotSettings({
         useScreenCaptureAPI: screenshotConf?.useScreenCaptureAPI,
         maxScreenshotSize: screenshotConf?.maxScreenshotSize,
+        maxImageUploadSizeMb: screenshotConf?.maxImageUploadSizeMb,
+        maxVideoUploadSizeMb: screenshotConf?.maxVideoUploadSizeMb,
       });
 
       // Whitelist settings

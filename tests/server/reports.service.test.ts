@@ -10,9 +10,20 @@ import { registerEEHooks, resetEEHooks } from '../../src/server/utils/ee-hooks';
 import { notificationsService } from '../../src/server/services/notifications.service';
 import { githubSyncService } from '../../src/server/services/integrations/github-sync.service';
 import { syncQueueService } from '../../src/server/services/integrations/sync-queue.service';
+import { settingsCacheService } from '../../src/server/services/settings-cache.service';
 import { config } from '../../src/server/config';
-import type { Report, ReportMetadata, Project } from '../../src/shared/types';
+import type { Report, ReportMetadata, Project, AppSettings } from '../../src/shared/types';
 import type { EEHooks } from '../../src/server/types/ee-plugin';
+
+// Valid file buffers with correct magic bytes for validation
+const validPngBuffer = Buffer.from(
+  '89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C6360000000020001E221BC330000000049454E44AE426082',
+  'hex',
+);
+const validMp4Buffer = Buffer.from([
+  0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, // ftyp at offset 4
+  0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x00, 0x00,
+]);
 
 const baseMetadata: ReportMetadata = {
   url: 'https://example.com',
@@ -52,6 +63,7 @@ const originalFilesRepo = { ...filesRepo };
 const originalNotificationsService = { ...notificationsService };
 const originalGithubSyncService = { ...githubSyncService };
 const originalSyncQueueService = { ...syncQueueService };
+const originalSettingsCacheGetAll = settingsCacheService.getAll.bind(settingsCacheService);
 const originalConfig = { ...config };
 let tempDir = '';
 
@@ -144,6 +156,8 @@ beforeEach(() => {
   syncQueueService.enqueue = async (reportId, integrationId) => {
     syncQueueCalls.push({ reportId, integrationId });
   };
+
+  settingsCacheService.getAll = async () => ({ screenshot: { maxScreenshotSize: 10, useScreenCaptureAPI: false } } as AppSettings);
 });
 
 afterEach(() => {
@@ -153,6 +167,7 @@ afterEach(() => {
   Object.assign(notificationsService, originalNotificationsService);
   Object.assign(githubSyncService, originalGithubSyncService);
   Object.assign(syncQueueService, originalSyncQueueService);
+  settingsCacheService.getAll = originalSettingsCacheGetAll;
   resetEEHooks();
 });
 
@@ -236,12 +251,12 @@ describe('reportsService.create', () => {
         {
           filename: 'screen.png',
           mimeType: 'image/png',
-          data: Buffer.from([0x00, 0x01]),
+          data: validPngBuffer,
         },
         {
           filename: 'clip.mp4',
           mimeType: 'video/mp4',
-          data: Buffer.from([0x00, 0x01]),
+          data: validMp4Buffer,
         },
       ],
     });
@@ -257,12 +272,12 @@ describe('reportsService.create', () => {
         {
           filename: 'screen.png',
           mimeType: 'image/png',
-          data: Buffer.from([0x00, 0x01]),
+          data: validPngBuffer,
         },
         {
           filename: 'clip.mp4',
           mimeType: 'video/mp4',
-          data: Buffer.from([0x00, 0x01]),
+          data: validMp4Buffer,
         },
       ],
     });
@@ -411,7 +426,7 @@ describe('reportsService.addFile', () => {
 
   it('adds file to report', async () => {
     const result = await reportsService.addFile('rpt_1', {
-      data: new Uint8Array([0x00, 0x01]),
+      data: validPngBuffer,
       filename: 'file.png',
       mimeType: 'image/png',
       type: 'screenshot',
@@ -424,11 +439,37 @@ describe('reportsService.addFile', () => {
       throw new Error('DB error');
     };
     const result = await reportsService.addFile('rpt_1', {
-      data: new Uint8Array([0x00, 0x01]),
+      data: validPngBuffer,
       filename: 'file.png',
       mimeType: 'image/png',
       type: 'screenshot',
     });
     expect(result.success).toBe(false);
+  });
+
+  it('rejects file with invalid MIME type', async () => {
+    const result = await reportsService.addFile('rpt_1', {
+      data: Buffer.from('hello'),
+      filename: 'file.exe',
+      mimeType: 'application/x-executable',
+      type: 'screenshot',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_MIME_TYPE');
+    }
+  });
+
+  it('rejects file with mismatched magic bytes', async () => {
+    const result = await reportsService.addFile('rpt_1', {
+      data: validMp4Buffer, // MP4 bytes but claiming PNG
+      filename: 'fake.png',
+      mimeType: 'image/png',
+      type: 'screenshot',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.code).toBe('INVALID_FILE_CONTENT');
+    }
   });
 });

@@ -5,7 +5,106 @@ import { generateFileId } from '../utils/id.js';
 import { logger } from '../utils/logger.js';
 import { getEEHooks } from '../utils/ee-hooks.js';
 import { settingsRepo } from '../database/repositories/settings.repo.js';
+import { Result } from '../utils/result.js';
 import type { FileType } from '@shared/types';
+
+// Allowed MIME types per file category
+
+export const ALLOWED_IMAGE_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/gif',
+  'image/webp',
+] as const;
+
+export const ALLOWED_VIDEO_MIME_TYPES = ['video/mp4', 'video/webm'] as const;
+
+export const ALLOWED_ATTACHMENT_MIME_TYPES = [
+  'application/pdf',
+  'text/plain',
+  'application/json',
+] as const;
+
+export const ALLOWED_MEDIA_MIME_TYPES = [
+  ...ALLOWED_IMAGE_MIME_TYPES,
+  ...ALLOWED_VIDEO_MIME_TYPES,
+] as const;
+
+const DEFAULT_MAX_FILE_SIZE_MB = 10;
+const MAX_VIDEO_SIZE_MB = 50;
+
+// Magic byte signatures for file type verification
+const MAGIC_BYTES: Record<string, { bytes: number[]; offset: number }[]> = {
+  'image/png': [{ bytes: [0x89, 0x50, 0x4e, 0x47], offset: 0 }],
+  'image/jpeg': [{ bytes: [0xff, 0xd8], offset: 0 }],
+  'image/jpg': [{ bytes: [0xff, 0xd8], offset: 0 }],
+  'image/gif': [
+    { bytes: [0x47, 0x49, 0x46, 0x38, 0x37, 0x61], offset: 0 }, // GIF87a
+    { bytes: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], offset: 0 }, // GIF89a
+  ],
+  'image/webp': [
+    { bytes: [0x52, 0x49, 0x46, 0x46], offset: 0 }, // RIFF header
+  ],
+  'video/mp4': [{ bytes: [0x66, 0x74, 0x79, 0x70], offset: 4 }], // ftyp at offset 4
+  'video/webm': [{ bytes: [0x1a, 0x45, 0xdf, 0xa3], offset: 0 }], // EBML header
+};
+
+function matchesMagicBytes(data: Buffer | Uint8Array, signatures: { bytes: number[]; offset: number }[]): boolean {
+  return signatures.some((sig) => {
+    if (data.length < sig.offset + sig.bytes.length) return false;
+    return sig.bytes.every((byte, i) => data[sig.offset + i] === byte);
+  });
+}
+
+export interface ValidateFileOptions {
+  data: Buffer | Uint8Array;
+  mimeType: string;
+  type: FileType;
+  maxSizeMb?: number;
+}
+
+export function validateFile(options: ValidateFileOptions): Result<void> {
+  const { data, mimeType, type, maxSizeMb } = options;
+
+  // Check MIME type against allowlist
+  const allowedTypes: readonly string[] =
+    type === 'attachment'
+      ? ALLOWED_ATTACHMENT_MIME_TYPES
+      : type === 'video'
+        ? ALLOWED_VIDEO_MIME_TYPES
+        : type === 'screenshot'
+          ? ALLOWED_IMAGE_MIME_TYPES
+          : ALLOWED_MEDIA_MIME_TYPES;
+
+  if (!allowedTypes.includes(mimeType)) {
+    return Result.fail(
+      `MIME type "${mimeType}" is not allowed for ${type} uploads`,
+      'INVALID_MIME_TYPE',
+    );
+  }
+
+  // Check file size
+  const sizeMb = data.length / (1024 * 1024);
+  const limit = maxSizeMb ?? (type === 'video' ? MAX_VIDEO_SIZE_MB : DEFAULT_MAX_FILE_SIZE_MB);
+  if (sizeMb > limit) {
+    return Result.fail(
+      `File size ${sizeMb.toFixed(1)}MB exceeds the ${limit}MB limit`,
+      'FILE_TOO_LARGE',
+    );
+  }
+
+  // Validate magic bytes for types that have signatures
+  const signatures = MAGIC_BYTES[mimeType];
+  if (signatures && !matchesMagicBytes(data, signatures)) {
+    return Result.fail(
+      `File content does not match declared MIME type "${mimeType}"`,
+      'INVALID_FILE_CONTENT',
+    );
+  }
+
+  return Result.ok(undefined);
+}
 
 // File Storage Service
 
