@@ -7,6 +7,7 @@ import type {
   NotificationDefaultSettings,
   BrandingSettings,
   AdminButtonColors,
+  ReporterNotificationSettings,
 } from '@shared/types';
 
 // Database Row Type
@@ -45,15 +46,25 @@ const DEFAULT_WIDGET_DIALOG: ThemeColors = {
   lightTextColor: '#ffffff',
   lightButtonHoverColor: '#024F6F',
   lightTextHoverColor: '#ffffff',
+  lightBackgroundColor: '#ffffff',
+  lightSecondaryColor: '#f5f5f5',
+  lightInputColor: '#ffffff',
+  lightForegroundColor: '#0a0a0a',
   darkButtonColor: '#02658D',
   darkTextColor: '#ffffff',
   darkButtonHoverColor: '#036F9B',
   darkTextHoverColor: '#ffffff',
+  darkBackgroundColor: '#0a0a0a',
+  darkSecondaryColor: '#262626',
+  darkInputColor: '#1a1a1a',
+  darkForegroundColor: '#fafafa',
 };
 
 const DEFAULT_SCREENSHOT: GlobalScreenshotSettings = {
   useScreenCaptureAPI: false,
-  maxScreenshotSize: 10,
+  maxScreenshotSize: 5,
+  maxImageUploadSizeMb: 10,
+  maxVideoUploadSizeMb: 50,
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationDefaultSettings = {
@@ -73,6 +84,14 @@ const DEFAULT_BRANDING: BrandingSettings = {
   iconDarkUrl: null,
   faviconLightVersion: 'default',
   faviconDarkVersion: 'default',
+};
+
+const DEFAULT_REPORTER_NOTIFICATIONS: ReporterNotificationSettings = {
+  emailEnabled: true,
+  notifyOnNewReport: true,
+  notifyOnStatusChange: true,
+  notifyOnPriorityChange: true,
+  messagingEnabled: true,
 };
 
 const DEFAULT_ADMIN_BUTTON: AdminButtonColors = {
@@ -104,6 +123,7 @@ const KEY_MAP: Record<string, string> = {
   screenshot: 'screenshot',
   notifications: 'notifications',
   branding: 'branding',
+  reporterNotifications: 'reporter_notifications',
   adminButton: 'admin_button',
   emailTemplates: 'email_templates',
 };
@@ -189,6 +209,11 @@ export const settingsRepo = {
       notifications: {
         ...DEFAULT_NOTIFICATIONS,
         ...(settings.notifications as Partial<NotificationDefaultSettings>),
+      },
+      // Reporter notification settings
+      reporterNotifications: {
+        ...DEFAULT_REPORTER_NOTIFICATIONS,
+        ...(settings.reporterNotifications as Partial<ReporterNotificationSettings>),
       },
       // Branding settings
       branding: {

@@ -59,7 +59,7 @@ describe('Global settings sections', () => {
 
     renderWithQuery(<ScreenshotSettings />);
 
-    await screen.findByLabelText(/max screenshot size/i);
+    await screen.findByLabelText(/max\.? screenshot size/i);
 
     const screenCaptureSwitch = screen.getByRole('switch', { name: /use screen capture api/i });
     await user.click(screenCaptureSwitch);
@@ -69,7 +69,9 @@ describe('Global settings sections', () => {
     await waitFor(() => {
       expect(putSpy).toHaveBeenCalledWith('/settings', {
         screenshot: {
-          maxScreenshotSize: 10,
+          maxScreenshotSize: 5,
+          maxImageUploadSizeMb: 10,
+          maxVideoUploadSizeMb: 50,
           useScreenCaptureAPI: true,
         },
       });

@@ -57,10 +57,18 @@ const baseConfig: WidgetConfig = {
   dialogLightTextColor: '#ffffff',
   dialogLightButtonHoverColor: '#111111',
   dialogLightTextHoverColor: '#ffffff',
+  dialogLightBackgroundColor: '#ffffff',
+  dialogLightSecondaryColor: '#f5f5f5',
+  dialogLightInputColor: '#ffffff',
+  dialogLightForegroundColor: '#0a0a0a',
   dialogDarkButtonColor: '#000000',
   dialogDarkTextColor: '#ffffff',
   dialogDarkButtonHoverColor: '#111111',
   dialogDarkTextHoverColor: '#ffffff',
+  dialogDarkBackgroundColor: '#0a0a0a',
+  dialogDarkSecondaryColor: '#262626',
+  dialogDarkInputColor: '#1a1a1a',
+  dialogDarkForegroundColor: '#fafafa',
   enableHoverScaleEffect: true,
   tooltipEnabled: false,
   tooltipText: null,
@@ -70,6 +78,8 @@ const baseConfig: WidgetConfig = {
   captureMethod: 'visible',
   useScreenCaptureAPI: false,
   maxScreenshotSize: 5 * 1024 * 1024,
+  maxImageUploadSize: 10 * 1024 * 1024,
+  maxVideoUploadSize: 50 * 1024 * 1024,
 };
 
 const originalSetTimeout = globalThis.setTimeout;

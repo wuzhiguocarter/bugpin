@@ -118,6 +118,8 @@ const baseProject: Project = {
     screenshot: {
       useScreenCaptureAPI: true,
       maxScreenshotSize: 5,
+      maxImageUploadSizeMb: 10,
+      maxVideoUploadSizeMb: 50,
     },
     security: {
       allowedOrigins: ['example.com'],

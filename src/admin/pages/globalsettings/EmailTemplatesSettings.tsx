@@ -58,6 +58,26 @@ const TEMPLATE_TYPES: { value: EmailTemplateType; label: string; description: st
     label: 'Test Email',
     description: 'Sent when testing SMTP configuration',
   },
+  {
+    value: 'reporterConfirmation',
+    label: 'Reporter Confirmation',
+    description: 'Sent to the reporter when a bug report is submitted',
+  },
+  {
+    value: 'reporterStatusChange',
+    label: 'Reporter Status Change',
+    description: 'Sent to the reporter when report status changes',
+  },
+  {
+    value: 'reporterPriorityChange',
+    label: 'Reporter Priority Change',
+    description: 'Sent to the reporter when report priority changes',
+  },
+  {
+    value: 'reporterMessage',
+    label: 'Reporter Message',
+    description: 'Sent to the reporter when an admin sends a direct message',
+  },
 ];
 
 const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
@@ -122,6 +142,52 @@ const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
     'report.priorityFormatted',
   ],
   testEmail: ['app.name'],
+  reporterConfirmation: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'report.status',
+    'report.statusFormatted',
+    'report.priority',
+    'report.priorityFormatted',
+    'report.createdAt',
+  ],
+  reporterStatusChange: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'oldStatus',
+    'oldStatusFormatted',
+    'newStatus',
+    'newStatusFormatted',
+    'reporterMessage',
+    'reporterMessageDisplay',
+  ],
+  reporterPriorityChange: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'oldPriority',
+    'oldPriorityFormatted',
+    'newPriority',
+    'newPriorityFormatted',
+  ],
+  reporterMessage: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.status',
+    'report.statusFormatted',
+    'sender.name',
+    'message',
+  ],
 };
 
 export function EmailTemplatesSettings() {
@@ -134,13 +200,13 @@ export function EmailTemplatesSettings() {
   const [previewData, setPreviewData] = useState<{ subject: string; html: string } | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Check if email-templates feature is licensed
+  // Check if custom-templates feature is licensed
   const { data: featureStatus, isLoading: isLoadingLicense } = useQuery({
     queryKey: ['license-features'],
     queryFn: licenseApi.getFeatures,
   });
 
-  const isLicensed = featureStatus?.features?.['email-templates'] ?? false;
+  const isLicensed = featureStatus?.features?.['custom-templates'] ?? false;
 
   // Fetch current settings
   const { data: settings, isLoading: isLoadingSettings } = useQuery({
@@ -281,7 +347,7 @@ export function EmailTemplatesSettings() {
   if (!isLicensed) {
     return (
       <UpgradePrompt
-        feature="email-templates"
+        feature="custom-templates"
         title="Email Templates"
         description="Customize the email notification templates sent to users. Personalize subject lines, content, and styling to match your brand."
       />

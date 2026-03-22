@@ -8,7 +8,18 @@ import { settingsCacheService } from './settings-cache.service.js';
 import { emailService } from './email.service.js';
 import { Result } from '../utils/result.js';
 import { logger } from '../utils/logger.js';
-import type { NotificationPreferences, ProjectNotificationDefaults, Report } from '@shared/types';
+import { isValidEmail } from '../utils/validators.js';
+import type {
+  NotificationPreferences,
+  ProjectNotificationDefaults,
+  Project,
+  Report,
+  ReportStatus,
+  ReportPriority,
+  AppSettings,
+  ProjectSettings,
+  ReporterNotificationSettings,
+} from '@shared/types';
 
 // Types
 
@@ -28,6 +39,72 @@ export interface UpdateProjectNotificationDefaultsInput {
   defaultNotifyOnAssignment?: boolean;
   defaultNotifyOnDeletion?: boolean;
   defaultEmailEnabled?: boolean;
+}
+
+// Helpers
+
+function getEffectiveReporterSettings(
+  globalSettings: AppSettings,
+  projectSettings?: ProjectSettings,
+): ReporterNotificationSettings {
+  const globalReporter = globalSettings.reporterNotifications ?? {
+    emailEnabled: true,
+    notifyOnNewReport: true,
+    notifyOnStatusChange: true,
+    notifyOnPriorityChange: true,
+    messagingEnabled: true,
+  };
+
+  // Legacy backward compat: if notifyReporter is explicitly false, disable all
+  if (projectSettings?.notifyReporter === false) {
+    return {
+      emailEnabled: false,
+      notifyOnNewReport: false,
+      notifyOnStatusChange: false,
+      notifyOnPriorityChange: false,
+      messagingEnabled: false,
+    };
+  }
+
+  // Project overrides take precedence over global
+  const projectReporter = projectSettings?.reporterNotifications;
+  return {
+    emailEnabled: projectReporter?.emailEnabled ?? globalReporter.emailEnabled,
+    notifyOnNewReport: projectReporter?.notifyOnNewReport ?? globalReporter.notifyOnNewReport,
+    notifyOnStatusChange: projectReporter?.notifyOnStatusChange ?? globalReporter.notifyOnStatusChange,
+    notifyOnPriorityChange:
+      projectReporter?.notifyOnPriorityChange ?? globalReporter.notifyOnPriorityChange,
+    messagingEnabled: projectReporter?.messagingEnabled ?? globalReporter.messagingEnabled,
+  };
+}
+
+interface ReporterContext {
+  project: Project;
+  settings: AppSettings;
+  effective: ReporterNotificationSettings;
+}
+
+async function getReporterContext(
+  report: Report,
+  flag: keyof ReporterNotificationSettings,
+): Promise<ReporterContext | null> {
+  if (!report.reporterEmail || !isValidEmail(report.reporterEmail)) {
+    return null;
+  }
+
+  const project = await projectsRepo.findById(report.projectId);
+  if (!project) {
+    logger.error('Project not found for reporter notification', { projectId: report.projectId });
+    return null;
+  }
+
+  const settings = await settingsCacheService.getAll();
+  const effective = getEffectiveReporterSettings(settings, project.settings);
+  if (!effective.emailEnabled || !effective[flag]) {
+    return null;
+  }
+
+  return { project, settings, effective };
 }
 
 // Service
@@ -476,6 +553,154 @@ export const notificationsService = {
   },
 
   /**
+   * Send confirmation email to reporter when a report is submitted
+   */
+  async notifyReporterSubmission(report: Report): Promise<void> {
+    try {
+      const ctx = await getReporterContext(report, 'notifyOnNewReport');
+      if (!ctx) return;
+
+      const result = await emailService.sendReporterConfirmationEmail(report.reporterEmail!, {
+        report,
+        projectName: ctx.project.name,
+        appName: ctx.settings.appName || 'BugPin',
+        appUrl: ctx.settings.appUrl || '',
+      });
+
+      if (result.success) {
+        logger.info('Reporter submission confirmation sent', {
+          reportId: report.id,
+          reporterEmail: report.reporterEmail,
+        });
+      } else {
+        logger.warn('Reporter submission confirmation failed', {
+          reportId: report.id,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to send reporter submission confirmation', {
+        reportId: report.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  },
+
+  /**
+   * Send status change email to reporter
+   */
+  async notifyReporterStatusChange(
+    report: Report,
+    oldStatus: ReportStatus,
+    newStatus: ReportStatus,
+  ): Promise<void> {
+    try {
+      const ctx = await getReporterContext(report, 'notifyOnStatusChange');
+      if (!ctx) return;
+
+      const result = await emailService.sendReporterStatusChangeEmail(report.reporterEmail!, {
+        report,
+        projectName: ctx.project.name,
+        appName: ctx.settings.appName || 'BugPin',
+        appUrl: ctx.settings.appUrl || '',
+        oldStatus,
+        newStatus,
+      });
+
+      if (result.success) {
+        logger.info('Reporter status change notification sent', {
+          reportId: report.id,
+          reporterEmail: report.reporterEmail,
+        });
+      } else {
+        logger.warn('Reporter status change notification failed', {
+          reportId: report.id,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to send reporter status change notification', {
+        reportId: report.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  },
+
+  /**
+   * Send a direct message email to the reporter
+   */
+  async notifyReporterMessage(
+    report: Report,
+    message: string,
+    senderUserId: string,
+    ccSender?: boolean,
+  ): Promise<void> {
+    try {
+      const ctx = await getReporterContext(report, 'messagingEnabled');
+      if (!ctx) return;
+
+      const sender = await usersRepo.findById(senderUserId);
+      if (!sender) {
+        logger.error('Sender user not found for reporter message notification', {
+          userId: senderUserId,
+        });
+        return;
+      }
+
+      const emailData = {
+        report,
+        projectName: ctx.project.name,
+        appName: ctx.settings.appName || 'BugPin',
+        appUrl: ctx.settings.appUrl || '',
+        senderName: sender.name,
+        message,
+      };
+
+      const result = await emailService.sendReporterMessageEmail(
+        report.reporterEmail!,
+        emailData,
+      );
+
+      if (result.success) {
+        logger.info('Reporter message notification sent', {
+          reportId: report.id,
+          reporterEmail: report.reporterEmail,
+        });
+      } else {
+        logger.warn('Reporter message notification failed', {
+          reportId: report.id,
+          error: result.error,
+        });
+      }
+
+      // Send CC copy to sender with distinct framing
+      if (ccSender && sender.email) {
+        const ccResult = await emailService.sendReporterMessageCcEmail(
+          sender.email,
+          emailData,
+        );
+
+        if (ccResult.success) {
+          logger.info('Reporter message CC sent to sender', {
+            reportId: report.id,
+            senderEmail: sender.email,
+          });
+        } else {
+          logger.warn('Reporter message CC to sender failed', {
+            reportId: report.id,
+            error: ccResult.error,
+          });
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to send reporter message notification', {
+        reportId: report.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  },
+
+  /**
    * Send notification for report deletion
    */
   async notifyReportDeleted(report: Report): Promise<void> {
@@ -550,5 +775,68 @@ export const notificationsService = {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
+  },
+
+  /**
+   * Send priority change email to reporter
+   */
+  async notifyReporterPriorityChange(
+    report: Report,
+    oldPriority: ReportPriority,
+    newPriority: ReportPriority,
+  ): Promise<void> {
+    try {
+      const ctx = await getReporterContext(report, 'notifyOnPriorityChange');
+      if (!ctx) return;
+
+      const result = await emailService.sendReporterPriorityChangeEmail(report.reporterEmail!, {
+        report,
+        projectName: ctx.project.name,
+        appName: ctx.settings.appName || 'BugPin',
+        appUrl: ctx.settings.appUrl || '',
+        oldPriority,
+        newPriority,
+      });
+
+      if (result.success) {
+        logger.info('Reporter priority change notification sent', {
+          reportId: report.id,
+          reporterEmail: report.reporterEmail,
+        });
+      } else {
+        logger.warn('Reporter priority change notification failed', {
+          reportId: report.id,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to send reporter priority change notification', {
+        reportId: report.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  },
+
+  /**
+   * Update notification preferences for all projects at once
+   */
+  async updateAllUserPreferences(
+    userId: string,
+    input: UpdateNotificationPreferencesInput,
+  ): Promise<Result<NotificationPreferences[]>> {
+    const projects = await projectsRepo.findAll();
+    const results: NotificationPreferences[] = [];
+
+    for (const project of projects) {
+      const prefs = await notificationPreferencesRepo.upsert(userId, project.id, input);
+      results.push(prefs);
+    }
+
+    logger.info('User notification preferences updated for all projects', {
+      userId,
+      projectCount: results.length,
+    });
+
+    return Result.ok(results);
   },
 };

@@ -5,6 +5,8 @@ import { projectsService } from '../../services/projects.service.js';
 import { settingsService } from '../../services/settings.service.js';
 import { dynamicRateLimiter, apiKeyGenerator } from '../../middleware/rate-limit.js';
 import { logger } from '../../utils/logger.js';
+import { ALLOWED_MEDIA_MIME_TYPES } from '../../storage/files.js';
+import { settingsCacheService } from '../../services/settings-cache.service.js';
 import type { ReportMetadata } from '@shared/types';
 
 const widget = new Hono();
@@ -181,9 +183,27 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
 
   const data = validation.data;
 
-  // Prepare media files data
+  // Filter and prepare media files data
+  const settings = await settingsCacheService.getAll();
+  const maxFileSizeBytes = (settings.screenshot.maxImageUploadSizeMb ?? 10) * 1024 * 1024;
+  const maxVideoSizeBytes = (settings.screenshot.maxVideoUploadSizeMb ?? 50) * 1024 * 1024;
+  const allowedTypes: readonly string[] = ALLOWED_MEDIA_MIME_TYPES;
+
   const media: Array<{ data: Buffer; filename: string; mimeType: string }> = [];
   for (const file of mediaFiles) {
+    // Early MIME type check before buffering
+    if (!allowedTypes.includes(file.type)) {
+      logger.warn('Media file rejected: invalid MIME type', { filename: file.name, mimeType: file.type });
+      continue;
+    }
+
+    // Early size check before buffering
+    const sizeLimit = file.type.startsWith('video/') ? maxVideoSizeBytes : maxFileSizeBytes;
+    if (file.size > sizeLimit) {
+      logger.warn('Media file rejected: too large', { filename: file.name, size: file.size, limit: sizeLimit });
+      continue;
+    }
+
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
       media.push({
@@ -256,20 +276,29 @@ widget.get('/config/:apiKey', async (c) => {
   const globalDialog = appSettings.widgetDialog;
   const globalScreenshot = appSettings.screenshot;
 
-  // Use project-level settings if defined, otherwise fall back to global settings
+  // Use project-level settings if defined, otherwise fall back to global settings.
+  // For nullable fields (buttonIcon, buttonText, tooltipText), check for undefined specifically
+  // because null is a valid explicit value (e.g., "No Icon") and ?? would treat it as unset.
   const useScreenCaptureAPI =
     projScreenshot?.useScreenCaptureAPI ?? globalScreenshot.useScreenCaptureAPI;
+  const maxImageUploadSizeMb =
+    projScreenshot?.maxImageUploadSizeMb ?? globalScreenshot.maxImageUploadSizeMb;
+  const maxVideoUploadSizeMb =
+    projScreenshot?.maxVideoUploadSizeMb ?? globalScreenshot.maxVideoUploadSizeMb;
   const theme = projButton?.theme ?? globalButton.theme;
   const position = projButton?.position ?? globalButton.position;
-  const buttonText = projButton?.buttonText ?? globalButton.buttonText;
+  const buttonText =
+    projButton?.buttonText !== undefined ? projButton.buttonText : globalButton.buttonText;
   const buttonShape = projButton?.buttonShape ?? globalButton.buttonShape;
-  const buttonIcon = projButton?.buttonIcon ?? globalButton.buttonIcon;
+  const buttonIcon =
+    projButton?.buttonIcon !== undefined ? projButton.buttonIcon : globalButton.buttonIcon;
   const buttonIconSize = projButton?.buttonIconSize ?? globalButton.buttonIconSize;
   const buttonIconStroke = projButton?.buttonIconStroke ?? globalButton.buttonIconStroke;
   const enableHoverScaleEffect =
     projButton?.enableHoverScaleEffect ?? globalButton.enableHoverScaleEffect;
   const tooltipEnabled = projButton?.tooltipEnabled ?? globalButton.tooltipEnabled;
-  const tooltipText = projButton?.tooltipText ?? globalButton.tooltipText;
+  const tooltipText =
+    projButton?.tooltipText !== undefined ? projButton.tooltipText : globalButton.tooltipText;
 
   // Widget Button light mode colors
   const lightButtonColor = projButton?.lightButtonColor ?? globalButton.lightButtonColor;
@@ -292,12 +321,28 @@ widget.get('/config/:apiKey', async (c) => {
     projDialog?.lightButtonHoverColor ?? globalDialog.lightButtonHoverColor;
   const dialogLightTextHoverColor =
     projDialog?.lightTextHoverColor ?? globalDialog.lightTextHoverColor;
+  const dialogLightBackgroundColor =
+    projDialog?.lightBackgroundColor ?? globalDialog.lightBackgroundColor;
+  const dialogLightSecondaryColor =
+    projDialog?.lightSecondaryColor ?? globalDialog.lightSecondaryColor;
+  const dialogLightInputColor =
+    projDialog?.lightInputColor ?? globalDialog.lightInputColor;
+  const dialogLightForegroundColor =
+    projDialog?.lightForegroundColor ?? globalDialog.lightForegroundColor;
   const dialogDarkButtonColor = projDialog?.darkButtonColor ?? globalDialog.darkButtonColor;
   const dialogDarkTextColor = projDialog?.darkTextColor ?? globalDialog.darkTextColor;
   const dialogDarkButtonHoverColor =
     projDialog?.darkButtonHoverColor ?? globalDialog.darkButtonHoverColor;
   const dialogDarkTextHoverColor =
     projDialog?.darkTextHoverColor ?? globalDialog.darkTextHoverColor;
+  const dialogDarkBackgroundColor =
+    projDialog?.darkBackgroundColor ?? globalDialog.darkBackgroundColor;
+  const dialogDarkSecondaryColor =
+    projDialog?.darkSecondaryColor ?? globalDialog.darkSecondaryColor;
+  const dialogDarkInputColor =
+    projDialog?.darkInputColor ?? globalDialog.darkInputColor;
+  const dialogDarkForegroundColor =
+    projDialog?.darkForegroundColor ?? globalDialog.darkForegroundColor;
 
   // Return widget configuration
   return c.json({
@@ -334,16 +379,26 @@ widget.get('/config/:apiKey', async (c) => {
       dialogLightTextColor,
       dialogLightButtonHoverColor,
       dialogLightTextHoverColor,
+      dialogLightBackgroundColor,
+      dialogLightSecondaryColor,
+      dialogLightInputColor,
+      dialogLightForegroundColor,
       // Dialog colors (dark mode)
       dialogDarkButtonColor,
       dialogDarkTextColor,
       dialogDarkButtonHoverColor,
       dialogDarkTextHoverColor,
+      dialogDarkBackgroundColor,
+      dialogDarkSecondaryColor,
+      dialogDarkInputColor,
+      dialogDarkForegroundColor,
       enableHoverScaleEffect,
       tooltipEnabled,
       tooltipText,
       captureMethod: 'visible', // Default capture method
       useScreenCaptureAPI,
+      maxImageUploadSizeMb,
+      maxVideoUploadSizeMb,
     },
   });
 });

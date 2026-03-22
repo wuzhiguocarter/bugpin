@@ -108,6 +108,24 @@ export const settingsService = {
       }
     }
 
+    if (input.screenshot?.maxImageUploadSizeMb !== undefined) {
+      if (input.screenshot.maxImageUploadSizeMb < 1 || input.screenshot.maxImageUploadSizeMb > 50) {
+        return Result.fail(
+          'Max upload size must be between 1 and 50 MB',
+          'INVALID_UPLOAD_SIZE',
+        );
+      }
+    }
+
+    if (input.screenshot?.maxVideoUploadSizeMb !== undefined) {
+      if (input.screenshot.maxVideoUploadSizeMb < 1 || input.screenshot.maxVideoUploadSizeMb > 500) {
+        return Result.fail(
+          'Max video upload size must be between 1 and 500 MB',
+          'INVALID_VIDEO_UPLOAD_SIZE',
+        );
+      }
+    }
+
     // Validate rateLimitPerMinute if provided
     if (input.rateLimitPerMinute !== undefined) {
       if (input.rateLimitPerMinute < 1 || input.rateLimitPerMinute > 1000) {

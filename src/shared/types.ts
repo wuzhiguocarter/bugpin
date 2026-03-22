@@ -109,10 +109,18 @@ export interface ThemeColors {
   lightTextColor: string;
   lightButtonHoverColor: string;
   lightTextHoverColor: string;
+  lightBackgroundColor?: string;
+  lightSecondaryColor?: string;
+  lightInputColor?: string;
+  lightForegroundColor?: string;
   darkButtonColor: string;
   darkTextColor: string;
   darkButtonHoverColor: string;
   darkTextHoverColor: string;
+  darkBackgroundColor?: string;
+  darkSecondaryColor?: string;
+  darkInputColor?: string;
+  darkForegroundColor?: string;
 }
 
 // Widget Launcher Button settings
@@ -144,16 +152,26 @@ export interface WidgetDialogSettings {
   lightTextColor?: string;
   lightButtonHoverColor?: string;
   lightTextHoverColor?: string;
+  lightBackgroundColor?: string;
+  lightSecondaryColor?: string;
+  lightInputColor?: string;
+  lightForegroundColor?: string;
   darkButtonColor?: string;
   darkTextColor?: string;
   darkButtonHoverColor?: string;
   darkTextHoverColor?: string;
+  darkBackgroundColor?: string;
+  darkSecondaryColor?: string;
+  darkInputColor?: string;
+  darkForegroundColor?: string;
 }
 
 // Screenshot settings
 export interface ScreenshotSettings {
   useScreenCaptureAPI?: boolean;
   maxScreenshotSize?: number;
+  maxImageUploadSizeMb?: number;
+  maxVideoUploadSizeMb?: number;
 }
 
 // Project Types
@@ -183,6 +201,8 @@ export interface ProjectSettings {
     emailRequired?: boolean;
     customFields?: CustomField[];
   };
+  notifyReporter?: boolean;
+  reporterNotifications?: Partial<ReporterNotificationSettings>;
   // Legacy widget settings (for backward compatibility during migration)
   widget?: {
     enabled?: boolean;
@@ -326,6 +346,15 @@ export interface NotificationDefaultSettings {
   notifyOnDeletion: boolean;
 }
 
+// Reporter notification settings
+export interface ReporterNotificationSettings {
+  emailEnabled: boolean;
+  notifyOnNewReport: boolean;
+  notifyOnStatusChange: boolean;
+  notifyOnPriorityChange: boolean;
+  messagingEnabled: boolean;
+}
+
 // Admin Console button colors
 export interface AdminButtonColors {
   lightButtonColor: string;
@@ -384,6 +413,8 @@ export interface GlobalWidgetLauncherButtonSettings {
 export interface GlobalScreenshotSettings {
   useScreenCaptureAPI: boolean;
   maxScreenshotSize: number;
+  maxImageUploadSizeMb: number;
+  maxVideoUploadSizeMb: number;
 }
 
 // Settings Types
@@ -426,6 +457,8 @@ export interface AppSettings {
   branding: BrandingSettings;
   // Admin Console settings
   adminButton: AdminButtonColors;
+  // Reporter notification settings
+  reporterNotifications: ReporterNotificationSettings;
   // Email templates (optional - uses defaults if not set)
   emailTemplates?: EmailTemplates;
   // White-label settings (EE feature)
@@ -536,7 +569,11 @@ export type EmailTemplateType =
   | 'assignment'
   | 'invitation'
   | 'reportDeleted'
-  | 'testEmail';
+  | 'testEmail'
+  | 'reporterConfirmation'
+  | 'reporterStatusChange'
+  | 'reporterPriorityChange'
+  | 'reporterMessage';
 
 export interface EmailTemplate {
   subject: string;
@@ -551,4 +588,18 @@ export interface EmailTemplates {
   invitation: EmailTemplate;
   reportDeleted: EmailTemplate;
   testEmail: EmailTemplate;
+  reporterConfirmation: EmailTemplate;
+  reporterStatusChange: EmailTemplate;
+  reporterPriorityChange: EmailTemplate;
+  reporterMessage: EmailTemplate;
+}
+
+export interface ReporterMessage {
+  id: string;
+  reportId: string;
+  userId: string;
+  userName?: string;
+  message: string;
+  sentAt: string;
+  createdAt: string;
 }

@@ -468,7 +468,9 @@ export const handlers = [
         },
         screenshot: {
           useScreenCaptureAPI: false,
-          maxScreenshotSize: 10,
+          maxScreenshotSize: 5,
+          maxImageUploadSizeMb: 10,
+          maxVideoUploadSizeMb: 50,
         },
         notifications: {
           emailEnabled: false,
@@ -545,7 +547,7 @@ export const handlers = [
         'custom-branding': true,
         'webhooks': true,
         'api-access': true,
-        'custom-email-templates': true,
+        'custom-templates': true,
         'white-label': true,
       },
     });

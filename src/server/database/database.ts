@@ -340,7 +340,7 @@ export async function initSchema(): Promise<void> {
       ('smtp_enabled', 'false'),
       ('smtp_config', '{}'),
       ('retention_days', '90'),
-      ('max_screenshot_size_mb', '10'),
+      ('max_screenshot_size_mb', '5'),
       ('rate_limit_per_minute', '10')
   `);
 

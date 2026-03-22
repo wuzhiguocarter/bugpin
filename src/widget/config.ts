@@ -23,11 +23,19 @@ export interface WidgetConfig {
   dialogLightTextColor: string;
   dialogLightButtonHoverColor: string;
   dialogLightTextHoverColor: string;
+  dialogLightBackgroundColor: string;
+  dialogLightSecondaryColor: string;
+  dialogLightInputColor: string;
+  dialogLightForegroundColor: string;
   // Dialog colors (dark mode)
   dialogDarkButtonColor: string;
   dialogDarkTextColor: string;
   dialogDarkButtonHoverColor: string;
   dialogDarkTextHoverColor: string;
+  dialogDarkBackgroundColor: string;
+  dialogDarkSecondaryColor: string;
+  dialogDarkInputColor: string;
+  dialogDarkForegroundColor: string;
   enableHoverScaleEffect: boolean;
   tooltipEnabled: boolean;
   tooltipText: string | null;
@@ -37,6 +45,8 @@ export interface WidgetConfig {
   captureMethod: 'visible' | 'fullpage' | 'element';
   useScreenCaptureAPI: boolean;
   maxScreenshotSize: number;
+  maxImageUploadSize: number;
+  maxVideoUploadSize: number;
 }
 
 export const defaultConfig: WidgetConfig = {
@@ -64,11 +74,19 @@ export const defaultConfig: WidgetConfig = {
   dialogLightTextColor: '#ffffff',
   dialogLightButtonHoverColor: '#024F6F',
   dialogLightTextHoverColor: '#ffffff',
+  dialogLightBackgroundColor: '#ffffff',
+  dialogLightSecondaryColor: '#f5f5f5',
+  dialogLightInputColor: '#ffffff',
+  dialogLightForegroundColor: '#0a0a0a',
   // Dialog colors (dark mode)
   dialogDarkButtonColor: '#02658D',
   dialogDarkTextColor: '#ffffff',
   dialogDarkButtonHoverColor: '#036F9B',
   dialogDarkTextHoverColor: '#ffffff',
+  dialogDarkBackgroundColor: '#0a0a0a',
+  dialogDarkSecondaryColor: '#262626',
+  dialogDarkInputColor: '#1a1a1a',
+  dialogDarkForegroundColor: '#fafafa',
   enableHoverScaleEffect: true,
   tooltipEnabled: false,
   tooltipText: null,
@@ -78,4 +96,6 @@ export const defaultConfig: WidgetConfig = {
   captureMethod: 'visible',
   useScreenCaptureAPI: false,
   maxScreenshotSize: 5 * 1024 * 1024, // 5MB
+  maxImageUploadSize: 10 * 1024 * 1024, // 10MB
+  maxVideoUploadSize: 50 * 1024 * 1024, // 50MB
 };

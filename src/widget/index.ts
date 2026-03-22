@@ -49,11 +49,19 @@ async function fetchConfig(
           dialogLightTextColor: cfg.dialogLightTextColor,
           dialogLightButtonHoverColor: cfg.dialogLightButtonHoverColor,
           dialogLightTextHoverColor: cfg.dialogLightTextHoverColor,
+          dialogLightBackgroundColor: cfg.dialogLightBackgroundColor,
+          dialogLightSecondaryColor: cfg.dialogLightSecondaryColor,
+          dialogLightInputColor: cfg.dialogLightInputColor,
+          dialogLightForegroundColor: cfg.dialogLightForegroundColor,
           // Dialog colors (dark mode)
           dialogDarkButtonColor: cfg.dialogDarkButtonColor,
           dialogDarkTextColor: cfg.dialogDarkTextColor,
           dialogDarkButtonHoverColor: cfg.dialogDarkButtonHoverColor,
           dialogDarkTextHoverColor: cfg.dialogDarkTextHoverColor,
+          dialogDarkBackgroundColor: cfg.dialogDarkBackgroundColor,
+          dialogDarkSecondaryColor: cfg.dialogDarkSecondaryColor,
+          dialogDarkInputColor: cfg.dialogDarkInputColor,
+          dialogDarkForegroundColor: cfg.dialogDarkForegroundColor,
           enableHoverScaleEffect: cfg.enableHoverScaleEffect,
           tooltipEnabled: cfg.tooltipEnabled,
           tooltipText: cfg.tooltipText,
@@ -62,6 +70,12 @@ async function fetchConfig(
           enableConsoleCapture: cfg.features?.consoleCapture ?? true,
           captureMethod: cfg.captureMethod,
           useScreenCaptureAPI: cfg.useScreenCaptureAPI,
+          maxImageUploadSize: cfg.maxImageUploadSizeMb
+            ? cfg.maxImageUploadSizeMb * 1024 * 1024
+            : undefined,
+          maxVideoUploadSize: cfg.maxVideoUploadSizeMb
+            ? cfg.maxVideoUploadSizeMb * 1024 * 1024
+            : undefined,
         };
       }
     } else if (response.status === 403) {

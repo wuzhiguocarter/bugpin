@@ -179,6 +179,8 @@ describe('Settings Page', () => {
             screenshot: {
               useScreenCaptureAPI: false,
               maxScreenshotSize: 5,
+              maxImageUploadSizeMb: 10,
+              maxVideoUploadSizeMb: 50,
             },
             notifications: {
               emailEnabled: false,

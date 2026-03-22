@@ -29,7 +29,11 @@ export function ScreenshotSettingsForm({
   const effectiveUseScreenCaptureAPI =
     value.useScreenCaptureAPI ?? globalSettings?.screenshot.useScreenCaptureAPI ?? false;
   const effectiveMaxScreenshotSize =
-    value.maxScreenshotSize ?? globalSettings?.screenshot.maxScreenshotSize ?? 10;
+    value.maxScreenshotSize ?? globalSettings?.screenshot.maxScreenshotSize ?? 5;
+  const effectiveMaxImageUploadSizeMb =
+    value.maxImageUploadSizeMb ?? globalSettings?.screenshot.maxImageUploadSizeMb ?? 10;
+  const effectiveMaxVideoUploadSizeMb =
+    value.maxVideoUploadSizeMb ?? globalSettings?.screenshot.maxVideoUploadSizeMb ?? 50;
 
   return (
     <div className="space-y-4">
@@ -54,6 +58,8 @@ export function ScreenshotSettingsForm({
                 onChange({
                   useScreenCaptureAPI: undefined,
                   maxScreenshotSize: undefined,
+                  maxImageUploadSizeMb: undefined,
+                  maxVideoUploadSizeMb: undefined,
                 });
               }
             }}
@@ -66,7 +72,7 @@ export function ScreenshotSettingsForm({
         <>
           {/* Max Screenshot Size */}
           <div className="space-y-2">
-            <Label htmlFor="max-screenshot-size">Max Screenshot Size (MB)</Label>
+            <Label htmlFor="max-screenshot-size">Max. Screenshot Size (MB)</Label>
             <Input
               id="max-screenshot-size"
               type="number"
@@ -74,12 +80,50 @@ export function ScreenshotSettingsForm({
               max={50}
               value={effectiveMaxScreenshotSize}
               onChange={(e) =>
-                onChange({ ...value, maxScreenshotSize: parseInt(e.target.value) || 10 })
+                onChange({ ...value, maxScreenshotSize: parseInt(e.target.value) || 5 })
               }
               disabled={disabled}
             />
             <p className="text-sm text-muted-foreground">
-              Maximum allowed size for uploaded screenshots (1-50 MB)
+              Maximum allowed size for captured screenshots (1-50 MB)
+            </p>
+          </div>
+
+          {/* Max Upload File Size */}
+          <div className="space-y-2">
+            <Label htmlFor="max-image-upload-size">Max. Image Upload Size (MB)</Label>
+            <Input
+              id="max-image-upload-size"
+              type="number"
+              min={1}
+              max={50}
+              value={effectiveMaxImageUploadSizeMb}
+              onChange={(e) =>
+                onChange({ ...value, maxImageUploadSizeMb: parseInt(e.target.value) || 10 })
+              }
+              disabled={disabled}
+            />
+            <p className="text-sm text-muted-foreground">
+              Maximum allowed size for uploaded images (1-50 MB)
+            </p>
+          </div>
+
+          {/* Max Video Upload File Size */}
+          <div className="space-y-2">
+            <Label htmlFor="max-video-upload-size">Max. Video Upload Size (MB)</Label>
+            <Input
+              id="max-video-upload-size"
+              type="number"
+              min={1}
+              max={500}
+              value={effectiveMaxVideoUploadSizeMb}
+              onChange={(e) =>
+                onChange({ ...value, maxVideoUploadSizeMb: parseInt(e.target.value) || 50 })
+              }
+              disabled={disabled}
+            />
+            <p className="text-sm text-muted-foreground">
+              Maximum allowed size for uploaded videos (1-500 MB)
             </p>
           </div>
 

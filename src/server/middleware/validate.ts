@@ -187,7 +187,7 @@ export const schemas = {
 
   // Update report request
   updateReport: z.object({
-    title: z.string().min(4).max(200).optional(),
+    title: z.string().min(4).max(500).optional(),
     description: z.string().optional(),
     status: z.enum(['open', 'in_progress', 'resolved', 'closed']).optional(),
     priority: z.enum(['lowest', 'low', 'medium', 'high', 'highest']).optional(),
@@ -235,8 +235,29 @@ export const schemas = {
         from: z.string().optional(),
       })
       .optional(),
+    notifications: z
+      .object({
+        emailEnabled: z.boolean().optional(),
+        notifyOnNewReport: z.boolean().optional(),
+        notifyOnStatusChange: z.boolean().optional(),
+        notifyOnPriorityChange: z.boolean().optional(),
+        notifyOnAssignment: z.boolean().optional(),
+        notifyOnDeletion: z.boolean().optional(),
+      })
+      .optional(),
+    reporterNotifications: z
+      .object({
+        emailEnabled: z.boolean().optional(),
+        notifyOnNewReport: z.boolean().optional(),
+        notifyOnStatusChange: z.boolean().optional(),
+        notifyOnPriorityChange: z.boolean().optional(),
+        messagingEnabled: z.boolean().optional(),
+      })
+      .optional(),
     retentionDays: z.number().int().min(0).max(3650).optional(),
     maxScreenshotSizeMb: z.number().int().min(1).max(50).optional(),
+    maxImageUploadSizeMb: z.number().int().min(1).max(50).optional(),
+    maxVideoUploadSizeMb: z.number().int().min(1).max(500).optional(),
     rateLimitPerMinute: z.number().int().min(1).max(1000).optional(),
     sessionMaxAgeDays: z.number().int().min(1).max(365).optional(),
   }),
@@ -306,6 +327,15 @@ export const schemas = {
     email: z.string().email('Invalid email address'),
     name: z.string().min(2, 'Name must be at least 2 characters'),
     role: z.enum(['admin', 'editor', 'viewer']).optional(),
+  }),
+
+  // Reporter message request
+  reporterMessage: z.object({
+    message: z
+      .string()
+      .min(1, 'Message is required')
+      .max(5000, 'Message must be at most 5000 characters'),
+    ccSender: z.boolean().optional(),
   }),
 
   // Accept invitation request
