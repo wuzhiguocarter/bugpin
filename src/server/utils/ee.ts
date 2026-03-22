@@ -1,7 +1,8 @@
 import type { Context, Next } from 'hono';
-import type { EEPlugin } from '../types/ee-plugin.js';
+import type { EEPlugin, EEFeature } from '../types/ee-plugin.js';
 import { registerEEHooks, resetEEHooks } from './ee-hooks.js';
 import { logger } from './logger.js';
+import { settingsRepo } from '../database/repositories/settings.repo.js';
 
 /**
  * Enterprise Edition utilities
@@ -103,16 +104,40 @@ export async function initializeEE(): Promise<void> {
 
   try {
     await plugin.initialize();
-    registerEEHooks(plugin.getHooks());
-    logger.info('Enterprise Edition initialized', {
-      name: plugin.name,
-      version: plugin.version,
-      licensed: plugin.isLicensed(),
-    });
   } catch (error) {
     logger.error('Failed to initialize Enterprise Edition', { error });
     resetEEHooks();
+    eeInitialized = true;
+    return;
   }
+
+  // License restore is best-effort — errors here should not disable EE
+  try {
+    if (!plugin.isLicensed()) {
+      const storedKey = await settingsRepo.get<string>('ee:license_key');
+      if (storedKey) {
+        const licenseService = getEELicenseService();
+        if (licenseService) {
+          const result = await licenseService.validateAndStore(storedKey);
+          if (result.valid) {
+            logger.info('License restored from database');
+          } else {
+            logger.warn('Stored license key is no longer valid', { error: result.error });
+            await settingsRepo.delete('ee:license_key');
+          }
+        }
+      }
+    }
+  } catch (error) {
+    logger.warn('Failed to restore license from database', { error });
+  }
+
+  registerEEHooks(plugin.getHooks());
+  logger.info('Enterprise Edition initialized', {
+    name: plugin.name,
+    version: plugin.version,
+    licensed: plugin.isLicensed(),
+  });
 
   eeInitialized = true;
 }
@@ -145,7 +170,7 @@ export function isEELicensed(): boolean {
 /**
  * Check if a specific EE feature is available and licensed
  */
-export function hasEEFeature(feature: string): boolean {
+export function hasEEFeature(feature: EEFeature): boolean {
   const plugin = getEEPlugin();
   if (plugin) {
     return plugin.hasFeature(feature);
@@ -223,7 +248,7 @@ export function requireEELicense() {
  * Middleware that requires a specific EE feature
  * Returns 402 Payment Required if feature not licensed
  */
-export function requireEEFeature(feature: string) {
+export function requireEEFeature(feature: EEFeature) {
   return async (c: Context, next: Next) => {
     if (!isEEAvailable()) {
       return c.json(

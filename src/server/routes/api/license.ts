@@ -6,6 +6,8 @@ import {
   hasEEFeature,
   getEELicenseService,
 } from '../../utils/ee.js';
+import type { EEFeature } from '../../types/ee-plugin.js';
+import { settingsRepo } from '../../database/repositories/settings.repo.js';
 
 const app = new Hono();
 
@@ -21,7 +23,7 @@ app.get('/status', authMiddleware, async (c) => {
  * GET /api/license/features - Check which EE features are available
  */
 app.get('/features', authMiddleware, async (c) => {
-  const features = [
+  const features: EEFeature[] = [
     'custom-branding',
     'sso',
     'audit-log',
@@ -50,7 +52,7 @@ app.get('/features', authMiddleware, async (c) => {
  * GET /api/license/feature/:feature - Check if a specific feature is available
  */
 app.get('/feature/:feature', authMiddleware, async (c) => {
-  const feature = c.req.param('feature');
+  const feature = c.req.param('feature') as EEFeature;
   const available = hasEEFeature(feature);
 
   return c.json({
@@ -105,6 +107,9 @@ app.post('/activate', authMiddleware, authorize(['admin']), async (c) => {
       );
     }
 
+    // Persist the license key to the database so it survives container restarts
+    await settingsRepo.set('ee:license_key', licenseKey);
+
     return c.json({ success: true, license: result.license });
   } catch (error) {
     return c.json(
@@ -137,6 +142,7 @@ app.delete('/', authMiddleware, authorize(['admin']), async (c) => {
 
   try {
     await licenseService.removeLicense();
+    await settingsRepo.delete('ee:license_key');
     return c.json({ success: true });
   } catch (error) {
     return c.json(
