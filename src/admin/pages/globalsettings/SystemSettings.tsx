@@ -164,25 +164,25 @@ function SystemSettingsSection() {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
               <Label htmlFor="update-check">Check for updates</Label>
-              <Controller
-                control={control}
-                name="updateCheckEnabled"
-                render={({ field }) => (
-                  <Switch
-                    id="update-check"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                )}
-              />
+              <p className="text-xs text-muted-foreground">
+                When enabled, BugPin checks GitHub once a day for new releases and shows a banner
+                to administrators when an update is available.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              When enabled, BugPin checks GitHub once a day for new releases and shows a banner to
-              administrators when an update is available.
-            </p>
+            <Controller
+              control={control}
+              name="updateCheckEnabled"
+              render={({ field }) => (
+                <Switch
+                  id="update-check"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Button type="submit" disabled={mutation.isPending}>
