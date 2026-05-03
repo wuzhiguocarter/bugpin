@@ -33,19 +33,46 @@ function lazyWithRetry(
 // Lazy load pages for code splitting
 const Login = lazyWithRetry(() => import('./pages/Login').then((m) => ({ default: m.Login })));
 const Dashboard = lazyWithRetry(() =>
-  import('./pages/Dashboard').then((m) => ({ default: m.Dashboard }))
+  import('./pages/workspace/Dashboard').then((m) => ({ default: m.Dashboard }))
 );
 const Reports = lazyWithRetry(() =>
-  import('./pages/Reports').then((m) => ({ default: m.Reports }))
+  import('./pages/workspace/Reports').then((m) => ({ default: m.Reports }))
 );
 const ReportDetail = lazyWithRetry(() =>
-  import('./pages/ReportDetail').then((m) => ({ default: m.ReportDetail }))
+  import('./pages/workspace/ReportDetail').then((m) => ({ default: m.ReportDetail }))
 );
 const Projects = lazyWithRetry(() =>
-  import('./pages/Projects').then((m) => ({ default: m.Projects }))
+  import('./pages/workspace/Projects').then((m) => ({ default: m.Projects }))
 );
-const Settings = lazyWithRetry(() =>
-  import('./pages/globalsettings').then((m) => ({ default: m.Settings }))
+const SettingsPage = lazyWithRetry(() =>
+  import('./pages/console/SettingsPage').then((m) => ({ default: m.SettingsPage }))
+);
+const NotificationsPage = lazyWithRetry(() =>
+  import('./pages/console/NotificationsPage').then((m) => ({ default: m.NotificationsPage }))
+);
+const Users = lazyWithRetry(() =>
+  import('./pages/console/Users').then((m) => ({ default: m.Users }))
+);
+const Security = lazyWithRetry(() =>
+  import('./pages/console/Security').then((m) => ({ default: m.Security }))
+);
+const Branding = lazyWithRetry(() =>
+  import('./pages/console/Branding').then((m) => ({ default: m.Branding }))
+);
+const License = lazyWithRetry(() =>
+  import('./pages/console/License').then((m) => ({ default: m.License }))
+);
+const WidgetButton = lazyWithRetry(() =>
+  import('./pages/widget/Button').then((m) => ({ default: m.Button }))
+);
+const WidgetDialog = lazyWithRetry(() =>
+  import('./pages/widget/Dialog').then((m) => ({ default: m.Dialog }))
+);
+const Screenshot = lazyWithRetry(() =>
+  import('./pages/widget/Screenshot').then((m) => ({ default: m.Screenshot }))
+);
+const Language = lazyWithRetry(() =>
+  import('./pages/widget/Language').then((m) => ({ default: m.Language }))
 );
 const TestWidgetPage = lazyWithRetry(() =>
   import('./pages/TestWidgetPage').then((m) => ({ default: m.TestWidgetPage }))
@@ -131,10 +158,82 @@ export function App() {
               }
             />
             <Route
-              path="globalsettings"
+              path="settings"
               element={
                 <AdminRoute>
-                  <Settings />
+                  <SettingsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="notifications"
+              element={
+                <AdminRoute>
+                  <NotificationsPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <AdminRoute>
+                  <Users />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="security"
+              element={
+                <AdminRoute>
+                  <Security />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="branding"
+              element={
+                <AdminRoute>
+                  <Branding />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="license"
+              element={
+                <AdminRoute>
+                  <License />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="button"
+              element={
+                <AdminRoute>
+                  <WidgetButton />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="dialog"
+              element={
+                <AdminRoute>
+                  <WidgetDialog />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="screenshot"
+              element={
+                <AdminRoute>
+                  <Screenshot />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="language"
+              element={
+                <AdminRoute>
+                  <Language />
                 </AdminRoute>
               }
             />

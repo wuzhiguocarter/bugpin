@@ -24,7 +24,7 @@ import {
 } from '../ui/dialog';
 import { Upload, Trash2, Camera } from 'lucide-react';
 import { Spinner } from '../ui/spinner';
-import { getCroppedImg } from '../../pages/globalsettings/imageUtils';
+import { getCroppedImg } from '../../lib/imageUtils';
 
 interface ProfileDialogProps {
   open: boolean;

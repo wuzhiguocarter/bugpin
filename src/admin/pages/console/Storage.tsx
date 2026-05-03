@@ -40,7 +40,7 @@ interface MigrationProgress {
   completedAt?: string;
 }
 
-export function StorageSettings() {
+export function Storage() {
   const { data: featureStatus, isLoading } = useQuery({
     queryKey: ['license-features'],
     queryFn: licenseApi.getFeatures,

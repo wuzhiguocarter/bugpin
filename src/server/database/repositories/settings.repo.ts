@@ -9,6 +9,7 @@ import type {
   AdminButtonColors,
   ReporterNotificationSettings,
   LocalizedString,
+  ProjectLanguageSettings,
 } from '@shared/types';
 import {
   wrapLegacyLocalizedString,
@@ -100,6 +101,11 @@ const DEFAULT_REPORTER_NOTIFICATIONS: ReporterNotificationSettings = {
   messagingEnabled: true,
 };
 
+const DEFAULT_LANGUAGE: ProjectLanguageSettings = {
+  mode: 'auto',
+  defaultLanguage: 'en',
+};
+
 const DEFAULT_ADMIN_BUTTON: AdminButtonColors = {
   lightButtonColor: '#02658D',
   lightTextColor: '#ffffff',
@@ -133,6 +139,7 @@ const KEY_MAP: Record<string, string> = {
   reporterNotifications: 'reporter_notifications',
   adminButton: 'admin_button',
   emailTemplates: 'email_templates',
+  language: 'language',
 };
 
 // Repository
@@ -229,6 +236,11 @@ export const settingsRepo = {
       adminButton: {
         ...DEFAULT_ADMIN_BUTTON,
         ...(settings.adminButton as Partial<AdminButtonColors>),
+      },
+      // Language defaults
+      language: {
+        ...DEFAULT_LANGUAGE,
+        ...(settings.language as Partial<ProjectLanguageSettings>),
       },
     };
   },

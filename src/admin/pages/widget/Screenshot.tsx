@@ -21,7 +21,7 @@ interface ScreenshotFormData {
   maxVideoUploadSizeMb?: number;
 }
 
-export function ScreenshotSettings() {
+export function Screenshot() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ScreenshotFormData>({
     maxScreenshotSizeMb: 5,
@@ -77,7 +77,7 @@ export function ScreenshotSettings() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="max-w-4xl">
         <CardContent className="py-12">
           <Spinner className="mx-auto text-primary" />
         </CardContent>
@@ -86,7 +86,7 @@ export function ScreenshotSettings() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-4xl">
       <CardHeader>
         <CardTitle>Screenshot Settings</CardTitle>
         <CardDescription>Configure screenshot capture settings</CardDescription>

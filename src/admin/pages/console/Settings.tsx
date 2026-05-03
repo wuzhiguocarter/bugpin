@@ -19,20 +19,20 @@ import { Spinner } from '../../components/ui/spinner';
 import { Switch } from '../../components/ui/switch';
 import type { AppSettings } from '@shared/types';
 
-const systemSettingsSchema = z.object({
+const settingsSchema = z.object({
   appName: z.string().min(1, 'Application name is required'),
   appUrl: z.string().url('Please enter a valid URL').or(z.literal('')),
   retentionDays: z.number().min(0, 'Must be 0 or more').max(3650, 'Must be 3650 or less'),
   updateCheckEnabled: z.boolean(),
 });
 
-type SystemSettingsFormData = z.infer<typeof systemSettingsSchema>;
+type SettingsFormData = z.infer<typeof settingsSchema>;
 
-export function SystemSettings() {
-  return <SystemSettingsSection />;
+export function Settings() {
+  return <SettingsSection />;
 }
 
-function SystemSettingsSection() {
+function SettingsSection() {
   const queryClient = useQueryClient();
 
   const {
@@ -41,8 +41,8 @@ function SystemSettingsSection() {
     reset,
     control,
     formState: { errors },
-  } = useForm<SystemSettingsFormData>({
-    resolver: zodResolver(systemSettingsSchema),
+  } = useForm<SettingsFormData>({
+    resolver: zodResolver(settingsSchema),
     defaultValues: {
       appName: '',
       appUrl: '',
@@ -78,14 +78,14 @@ function SystemSettingsSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       queryClient.invalidateQueries({ queryKey: ['version'] });
-      toast.success('System settings saved successfully');
+      toast.success('Settings saved successfully');
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(err.response?.data?.message || 'Failed to save settings');
     },
   });
 
-  const onSubmit = (data: SystemSettingsFormData) => {
+  const onSubmit = (data: SettingsFormData) => {
     mutation.mutate({
       appName: data.appName,
       appUrl: data.appUrl,
@@ -107,7 +107,7 @@ function SystemSettingsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>System Settings</CardTitle>
+        <CardTitle>General Settings</CardTitle>
         <CardDescription>Configure application settings and data retention</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -168,7 +168,7 @@ function SystemSettingsSection() {
             <div className="space-y-0.5">
               <Label htmlFor="update-check">Check for updates</Label>
               <p className="text-xs text-muted-foreground">
-                When enabled, BugPin checks GitHub once a day for new releases and shows a banner to
+                When enabled, BugPin checks once a day for new releases and shows a banner to
                 administrators when an update is available.
               </p>
             </div>

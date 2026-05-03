@@ -2,30 +2,30 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { api } from '../api/client';
-import { useAuth } from '../contexts/AuthContext';
-import { useIntegrations, useForwardReport } from '../hooks/useIntegrations';
-import { useReporterMessages } from '../hooks/useReporterMessages';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Label } from '../components/ui/label';
-import { Separator } from '../components/ui/separator';
-import { Textarea } from '../components/ui/textarea';
-import { Checkbox } from '../components/ui/checkbox';
+import { api } from '../../api/client';
+import { useAuth } from '../../contexts/AuthContext';
+import { useIntegrations, useForwardReport } from '../../hooks/useIntegrations';
+import { useReporterMessages } from '../../hooks/useReporterMessages';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
+import { Separator } from '../../components/ui/separator';
+import { Textarea } from '../../components/ui/textarea';
+import { Checkbox } from '../../components/ui/checkbox';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select';
+} from '../../components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+} from '../../components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +35,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+} from '../../components/ui/alert-dialog';
 import {
   ChevronLeft,
   ChevronDown,
@@ -49,10 +49,14 @@ import {
   CheckCircle,
   MessageSquare,
 } from 'lucide-react';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components/ui/collapsible';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { Spinner } from '../components/ui/spinner';
-import { formatDate, formatDateTime } from '../lib/utils';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '../../components/ui/collapsible';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { Spinner } from '../../components/ui/spinner';
+import { formatDate, formatDateTime } from '../../lib/utils';
 import type { AppSettings, Project, Report, ReportSource, User } from '@shared/types';
 
 const UNASSIGNED_VALUE = '__unassigned__';

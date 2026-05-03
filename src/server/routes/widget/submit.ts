@@ -233,11 +233,15 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
     }
   }
 
-  const projectLanguage = projectResult.value.settings?.language;
+  const globalSettingsResult = await settingsService.getAll();
+  const globalLanguage = globalSettingsResult.success
+    ? globalSettingsResult.value.language
+    : undefined;
+  const effectiveLanguage = projectResult.value.settings?.language ?? globalLanguage;
   const reporterLocale = resolveSubmitLocale({
     claimed: data.locale,
-    projectMode: projectLanguage?.mode,
-    projectDefault: projectLanguage?.defaultLanguage,
+    projectMode: effectiveLanguage?.mode,
+    projectDefault: effectiveLanguage?.defaultLanguage,
   });
 
   // Create report via service
@@ -303,10 +307,7 @@ widget.get('/config/:apiKey', async (c) => {
   const projButton = project.settings?.widgetLauncherButton;
   const projDialog = project.settings?.widgetDialog;
   const projScreenshot = project.settings?.screenshot;
-  const projLanguage = project.settings?.language ?? {
-    mode: 'auto' as const,
-    defaultLanguage: 'en' as const,
-  };
+  const projLanguage = project.settings?.language ?? appSettings.language;
   const globalButton = appSettings.widgetLauncherButton;
   const globalDialog = appSettings.widgetDialog;
   const globalScreenshot = appSettings.screenshot;

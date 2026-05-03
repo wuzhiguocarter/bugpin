@@ -65,7 +65,7 @@ function formatRelativeTime(dateString: string): string {
   return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
 }
 
-export function UsersSettings() {
+export function Users() {
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -180,7 +180,7 @@ export function UsersSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Users</h2>

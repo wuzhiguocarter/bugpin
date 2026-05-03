@@ -15,7 +15,7 @@ import { Switch } from '../../components/ui/switch';
 import { Spinner } from '../../components/ui/spinner';
 import type { AppSettings, ReporterNotificationSettings as ReporterSettings } from '@shared/types';
 
-export function ReporterNotificationSettings() {
+export function ReporterNotifications() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ReporterSettings>({
     emailEnabled: true,

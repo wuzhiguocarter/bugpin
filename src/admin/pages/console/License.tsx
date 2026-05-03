@@ -27,7 +27,7 @@ import {
   AlertDialogTrigger,
 } from '../../components/ui/alert-dialog';
 
-export function LicenseSettings() {
+export function License() {
   const queryClient = useQueryClient();
   const [licenseKey, setLicenseKey] = useState('');
 
@@ -72,7 +72,7 @@ export function LicenseSettings() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="max-w-4xl">
         <CardContent className="py-12">
           <Spinner className="mx-auto text-primary" />
         </CardContent>
@@ -89,7 +89,7 @@ export function LicenseSettings() {
       : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       {/* Current License Status */}
       <Card>
         <CardHeader>

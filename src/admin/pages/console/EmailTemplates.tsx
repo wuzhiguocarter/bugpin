@@ -98,8 +98,8 @@ const LOCALE_LABELS: Record<LocaleCode, string> = {
   nl: 'Nederlands',
   es: 'Español',
   it: 'Italiano',
-  ja: '日本語',
-  zh: '中文 (简体)',
+  ja: '日本語 (JP)',
+  zh: '中文 (简体) (CN)',
 };
 
 const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
@@ -239,7 +239,7 @@ interface CustomTemplatesResponse {
   templates: Partial<Record<EmailTemplateType, Partial<Record<LocaleCode, EmailTemplate>>>>;
 }
 
-export function EmailTemplatesSettings() {
+export function EmailTemplates() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<EmailTemplateType>('newReport');

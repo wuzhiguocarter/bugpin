@@ -17,7 +17,7 @@ import { Send } from 'lucide-react';
 import { Spinner } from '../../components/ui/spinner';
 import type { AppSettings } from '@shared/types';
 
-export function SMTPSettings() {
+export function SMTP() {
   return <SMTPSettingsSection />;
 }
 function SMTPSettingsSection() {

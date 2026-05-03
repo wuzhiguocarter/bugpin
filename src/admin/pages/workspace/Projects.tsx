@@ -22,11 +22,17 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { api } from '../api/client';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
+import { api } from '../../api/client';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -34,7 +40,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../components/ui/dialog';
+} from '../../components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +50,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+} from '../../components/ui/alert-dialog';
 import {
   Copy,
   Check,
@@ -58,11 +64,11 @@ import {
   ExternalLink,
   Download,
 } from 'lucide-react';
-import { Spinner } from '../components/ui/spinner';
-import { generateApiKeyPdf } from '../lib/generate-api-key-pdf';
-import { useBranding } from '../contexts/BrandingContext';
-import { ProjectSettingsDialog } from '../components/project/ProjectSettingsDialog';
-import { ProjectIntegrationsDialog } from '../components/project/ProjectIntegrationsDialog';
+import { Spinner } from '../../components/ui/spinner';
+import { generateApiKeyPdf } from '../../lib/generate-api-key-pdf';
+import { useBranding } from '../../contexts/BrandingContext';
+import { ProjectSettingsDialog } from '../../components/project/ProjectSettingsDialog';
+import { ProjectIntegrationsDialog } from '../../components/project/ProjectIntegrationsDialog';
 import type { ProjectSettings } from '@shared/types';
 
 interface Project {

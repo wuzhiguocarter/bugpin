@@ -65,8 +65,8 @@ const LOCALE_DISPLAY_LABELS: Record<LocaleCode, string> = {
   nl: 'Nederlands',
   es: 'Español',
   it: 'Italiano',
-  ja: '日本語',
-  zh: '中文 (简体)',
+  ja: '日本語 (JP)',
+  zh: '中文 (简体) (CN)',
 };
 
 import type { NotificationDefaultSettings } from '@shared/types';
@@ -380,33 +380,34 @@ export function ProjectSettingsDialog({
           <Tabs
             value={activeTab}
             onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-            className="flex min-h-0 flex-1 flex-col"
+            orientation="vertical"
+            className="flex min-h-0 flex-1 flex-row gap-4"
           >
-            <TabsList className="flex h-auto w-full flex-shrink-0 flex-wrap justify-start gap-2 rounded-xl p-2">
-              <TabsTrigger value="assignments" className="px-4 py-2">
+            <TabsList className="flex h-auto w-48 flex-shrink-0 flex-col items-stretch justify-start gap-1 rounded-xl bg-muted p-2">
+              <TabsTrigger value="assignments" className="justify-start px-3 py-2">
                 Assignments
               </TabsTrigger>
-              <TabsTrigger value="widgetDialog" className="px-4 py-2">
+              <TabsTrigger value="widgetDialog" className="justify-start px-3 py-2">
                 Widget Dialog
               </TabsTrigger>
-              <TabsTrigger value="widgetLauncherButton" className="px-4 py-2">
+              <TabsTrigger value="widgetLauncherButton" className="justify-start px-3 py-2">
                 Widget Button
               </TabsTrigger>
-              <TabsTrigger value="screenshot" className="px-4 py-2">
+              <TabsTrigger value="screenshot" className="justify-start px-3 py-2">
                 Screenshot
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="px-4 py-2">
+              <TabsTrigger value="notifications" className="justify-start px-3 py-2">
                 Notifications
               </TabsTrigger>
-              <TabsTrigger value="whitelists" className="px-4 py-2">
+              <TabsTrigger value="whitelists" className="justify-start px-3 py-2">
                 Whitelists
               </TabsTrigger>
-              <TabsTrigger value="language" className="px-4 py-2">
+              <TabsTrigger value="language" className="justify-start px-3 py-2">
                 Language
               </TabsTrigger>
             </TabsList>
 
-            <DialogBody className="flex-1 pt-4">
+            <DialogBody className="flex-1 min-w-0 pt-0">
               <TabsContent value="assignments" className="mt-0">
                 <div className="space-y-5 rounded-xl border bg-card p-5">
                   <div className="space-y-1">
@@ -639,7 +640,7 @@ export function ProjectSettingsDialog({
                       <SelectContent>
                         {SUPPORTED_LOCALES.map((code) => (
                           <SelectItem key={code} value={code}>
-                            {code} - {LOCALE_DISPLAY_LABELS[code]}
+                            {LOCALE_DISPLAY_LABELS[code]}
                           </SelectItem>
                         ))}
                       </SelectContent>

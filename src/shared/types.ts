@@ -521,6 +521,8 @@ export interface AppSettings {
   reporterNotifications: ReporterNotificationSettings;
   // Email templates (optional - uses defaults if not set)
   emailTemplates?: EmailTemplates;
+  // Language settings (instance-wide default)
+  language: ProjectLanguageSettings;
   // White-label settings (EE feature)
   whiteLabel?: WhiteLabelSettings;
 }

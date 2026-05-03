@@ -8,17 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ThemeColorPicker } from './ThemeColorPicker';
 import { LocalizedTextEditor } from './i18n/LocalizedTextEditor';
 import { Bug, MessageSquare, AlertCircle } from 'lucide-react';
+import { SUPPORTED_LOCALES } from '@shared/types';
 import type {
   GlobalWidgetLauncherButtonSettings,
+  LocaleCode,
   LocalizedString,
   WidgetLauncherButtonSettings,
 } from '@shared/types';
 
 const TOOLTIP_BUILTIN_PREVIEW = {
   en: 'Found a bug?',
-  de: 'Einen Fehler gefunden?',
+  de: 'Bug gefunden?',
   fr: 'Vous avez trouvé un bug ?',
-  nl: 'Een bug gevonden?',
+  nl: 'Bug gevonden?',
   es: '¿Has encontrado un error?',
   it: 'Hai trovato un bug?',
   ja: 'バグを見つけましたか？',
@@ -47,9 +49,18 @@ function resolveForPreview(
   return builtin;
 }
 
-function extractEnPreview(value: LocalizedString | null): { en: string } | undefined {
-  if (value && value.en) return { en: value.en };
-  return undefined;
+function buildPerLocalePreview(
+  global: LocalizedString | null,
+  builtin: Partial<Record<LocaleCode, string>> | null
+): Partial<Record<LocaleCode, string>> {
+  const out: Partial<Record<LocaleCode, string>> = {};
+  for (const code of SUPPORTED_LOCALES) {
+    const fromGlobal = global?.[code] ?? global?.en ?? '';
+    const fromBuiltin = builtin?.[code] ?? builtin?.en ?? '';
+    const value = fromGlobal || fromBuiltin;
+    if (value) out[code] = value;
+  }
+  return out;
 }
 
 interface LauncherPreviewProps extends Omit<
@@ -383,13 +394,16 @@ export function WidgetLauncherButtonSettingsForm({
           value={projectButtonText}
           onChange={(next) => onChange({ ...value, buttonText: next })}
           label="Button Text"
-          helpText="Leave empty to show only an icon."
-          builtInPreview={globalSettings ? extractEnPreview(globalButtonText) : undefined}
+          helpText="Leave empty to show only an icon. Toggle the switch to add a text."
+          builtInPreview={
+            globalSettings ? buildPerLocalePreview(globalButtonText, null) : undefined
+          }
           disabled={disabled}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* Button Icon, Icon Size, Icon Stroke Width */}
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="widget-button-icon">Button Icon (Optional)</Label>
           <Select
@@ -417,10 +431,7 @@ export function WidgetLauncherButtonSettingsForm({
           </Select>
           <p className="text-xs text-muted-foreground">Choose an icon to display on the button</p>
         </div>
-      </div>
 
-      {/* Icon Size and Stroke Width */}
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="widget-icon-size">Icon Size (px)</Label>
           <Input
@@ -538,10 +549,10 @@ export function WidgetLauncherButtonSettingsForm({
               value={projectTooltipText}
               onChange={(next) => onChange({ ...value, tooltipText: next })}
               label="Tooltip Text"
-              helpText="Text shown in the tooltip on hover."
+              helpText="Text shown in the tooltip on hover. Toggle the switch to override the tooltip text."
               builtInPreview={
                 globalSettings
-                  ? (extractEnPreview(globalTooltipText) ?? TOOLTIP_BUILTIN_PREVIEW)
+                  ? buildPerLocalePreview(globalTooltipText, TOOLTIP_BUILTIN_PREVIEW)
                   : TOOLTIP_BUILTIN_PREVIEW
               }
               disabled={disabled}

@@ -14,7 +14,7 @@ import { Spinner } from '../../components/ui/spinner';
 import { NotificationSettingsForm } from '../../components/NotificationSettingsForm';
 import type { AppSettings, NotificationDefaultSettings } from '@shared/types';
 
-export function NotificationDefaultsSettings() {
+export function NotificationDefaults() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Partial<NotificationDefaultSettings>>({});
 

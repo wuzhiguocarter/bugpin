@@ -18,7 +18,7 @@ import { Shield, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Spinner } from '../../components/ui/spinner';
 import type { AppSettings } from '@shared/types';
 
-export function SecuritySettings() {
+export function Security() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     enforceHttps: false,
@@ -67,7 +67,7 @@ export function SecuritySettings() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="max-w-4xl">
         <CardContent className="py-12">
           <Spinner className="mx-auto text-primary" />
         </CardContent>
@@ -76,7 +76,7 @@ export function SecuritySettings() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-4xl">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5" />

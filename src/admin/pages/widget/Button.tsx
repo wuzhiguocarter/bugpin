@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
+import { Button as UIButton } from '../../components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { Spinner } from '../../components/ui/spinner';
 import { WidgetLauncherButtonSettingsForm } from '../../components/WidgetLauncherButtonSettingsForm';
@@ -40,7 +40,7 @@ const DEFAULT_BUTTON_SETTINGS: GlobalWidgetLauncherButtonSettings = {
   tooltipText: null,
 };
 
-export function WidgetLauncherButtonSettings() {
+export function Button() {
   return <WidgetLauncherButtonSettingsSection />;
 }
 
@@ -118,7 +118,7 @@ function WidgetLauncherButtonSettingsSection() {
   // Wait for settings to fully load before rendering the form
   if (isLoading || !settings?.widgetLauncherButton) {
     return (
-      <Card>
+      <Card className="max-w-4xl">
         <CardContent className="py-12">
           <Spinner className="mx-auto text-primary" />
         </CardContent>
@@ -127,7 +127,7 @@ function WidgetLauncherButtonSettingsSection() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-4xl">
       <CardHeader>
         <CardTitle>Widget Button Settings</CardTitle>
         <CardDescription>
@@ -139,7 +139,7 @@ function WidgetLauncherButtonSettingsSection() {
           <WidgetLauncherButtonSettingsForm value={displayData} onChange={handleFormChange} />
 
           <div className="flex gap-2 pt-4 border-t">
-            <Button type="submit" disabled={mutation.isPending}>
+            <UIButton type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
@@ -148,8 +148,8 @@ function WidgetLauncherButtonSettingsSection() {
               ) : (
                 'Save Changes'
               )}
-            </Button>
-            <Button
+            </UIButton>
+            <UIButton
               type="button"
               variant="outline"
               onClick={handleReset}
@@ -157,7 +157,7 @@ function WidgetLauncherButtonSettingsSection() {
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset to Default
-            </Button>
+            </UIButton>
           </div>
         </CardContent>
       </form>

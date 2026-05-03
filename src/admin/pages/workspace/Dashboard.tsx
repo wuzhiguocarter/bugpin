@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { api } from '../api/client';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Spinner } from '../components/ui/spinner';
+import { api } from '../../api/client';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Spinner } from '../../components/ui/spinner';
 import { ClipboardList, Clock, CheckCircle, Zap } from 'lucide-react';
 
 interface DashboardStats {

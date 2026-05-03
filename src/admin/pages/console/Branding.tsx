@@ -26,7 +26,7 @@ import { ThemeColorPicker } from '../../components/ThemeColorPicker';
 import { Upload, RotateCcw, Camera, Trash2 } from 'lucide-react';
 import { Spinner } from '../../components/ui/spinner';
 import { UpgradePrompt } from '../../components/UpgradePrompt';
-import { getCroppedImg } from './imageUtils';
+import { getCroppedImg } from '../../lib/imageUtils';
 import type { ThemeColors } from '@shared/types';
 
 // Neutral gray theme - matching globals.css --primary colors
@@ -41,7 +41,7 @@ const DEFAULT_ADMIN_COLORS: ThemeColors = {
   darkTextHoverColor: '#ffffff',
 };
 
-export function BrandingSettings() {
+export function Branding() {
   const { data: featureStatus, isLoading } = useQuery({
     queryKey: ['license-features'],
     queryFn: licenseApi.getFeatures,
@@ -70,7 +70,7 @@ export function BrandingSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       <BrandColorSection />
       <IconSection />
       <LogoSection />
@@ -135,7 +135,7 @@ function BrandColorSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">Brand Colors</CardTitle>
         <CardDescription>
-          Configure the primary colors for buttons and interactive elements in the admin portal.
+          Configure the primary colors for buttons and interactive elements in the Admin Console.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>

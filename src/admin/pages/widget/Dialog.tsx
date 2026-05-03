@@ -34,7 +34,7 @@ const DEFAULT_WIDGET_COLORS: ThemeColors = {
   darkForegroundColor: '#fafafa',
 };
 
-export function WidgetDialogSettings() {
+export function Dialog() {
   const queryClient = useQueryClient();
   // Track local edits separately - null means use config values
   const [localEdits, setLocalEdits] = useState<Partial<ThemeColors> | null>(null);
@@ -75,7 +75,7 @@ export function WidgetDialogSettings() {
   // Wait for config to fully load before rendering the form
   if (isLoading || !config?.widgetPrimaryColors) {
     return (
-      <Card>
+      <Card className="max-w-4xl">
         <CardContent className="py-12">
           <Spinner className="mx-auto text-primary" />
         </CardContent>
@@ -84,7 +84,7 @@ export function WidgetDialogSettings() {
   }
 
   return (
-    <Card>
+    <Card className="max-w-4xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">Widget Dialog Settings</CardTitle>
         <CardDescription>

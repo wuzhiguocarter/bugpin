@@ -339,6 +339,7 @@ export const schemas = {
     rateLimitPerMinute: z.number().int().min(1).max(1000).optional(),
     sessionMaxAgeDays: z.number().int().min(1).max(365).optional(),
     updateCheckEnabled: z.boolean().optional(),
+    language: projectLanguageSchema.optional(),
   }),
 
   // Create integration request
