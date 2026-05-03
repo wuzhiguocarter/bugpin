@@ -30,7 +30,7 @@ const es: WidgetCatalog = {
   'dialog.buttons.cancel': 'Cancelar',
   'dialog.buttons.submit': 'Enviar informe',
 
-  'dialog.branding.poweredBy': 'Con tecnología de',
+  'dialog.branding.poweredBy': 'Powered by',
 
   'validation.title.required': 'El título es obligatorio',
   'validation.title.minLength': 'El título debe tener al menos 4 caracteres',

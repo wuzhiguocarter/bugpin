@@ -30,7 +30,7 @@ const fr: WidgetCatalog = {
   'dialog.buttons.cancel': 'Annuler',
   'dialog.buttons.submit': 'Envoyer le rapport',
 
-  'dialog.branding.poweredBy': 'Propulsé par',
+  'dialog.branding.poweredBy': 'Powered by',
 
   'validation.title.required': 'Le titre est obligatoire',
   'validation.title.minLength': 'Le titre doit comporter au moins 4 caractères',

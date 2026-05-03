@@ -30,7 +30,7 @@ const ja: WidgetCatalog = {
   'dialog.buttons.cancel': 'キャンセル',
   'dialog.buttons.submit': 'レポートを送信',
 
-  'dialog.branding.poweredBy': '提供：',
+  'dialog.branding.poweredBy': 'Powered by',
 
   'validation.title.required': 'タイトルは必須です',
   'validation.title.minLength': 'タイトルは4文字以上で入力してください',

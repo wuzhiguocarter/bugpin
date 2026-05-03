@@ -30,7 +30,7 @@ const nl: WidgetCatalog = {
   'dialog.buttons.cancel': 'Annuleren',
   'dialog.buttons.submit': 'Rapport verzenden',
 
-  'dialog.branding.poweredBy': 'Mogelijk gemaakt door',
+  'dialog.branding.poweredBy': 'Powered by',
 
   'validation.title.required': 'Titel is verplicht',
   'validation.title.minLength': 'Titel moet minstens 4 tekens bevatten',

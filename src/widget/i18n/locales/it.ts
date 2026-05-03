@@ -30,7 +30,7 @@ const it: WidgetCatalog = {
   'dialog.buttons.cancel': 'Annulla',
   'dialog.buttons.submit': 'Invia segnalazione',
 
-  'dialog.branding.poweredBy': 'Con tecnologia',
+  'dialog.branding.poweredBy': 'Powered by',
 
   'validation.title.required': 'Il titolo è obbligatorio',
   'validation.title.minLength': 'Il titolo deve contenere almeno 4 caratteri',

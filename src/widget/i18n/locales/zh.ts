@@ -30,7 +30,7 @@ const zh: WidgetCatalog = {
   'dialog.buttons.cancel': '取消',
   'dialog.buttons.submit': '提交报告',
 
-  'dialog.branding.poweredBy': '由',
+  'dialog.branding.poweredBy': 'Powered by',
 
   'validation.title.required': '请填写标题',
   'validation.title.minLength': '标题至少需要 4 个字符',
