@@ -101,7 +101,7 @@ cd src/widget && bun install
 **Tech Stack:**
 
 - **Server**: Bun runtime, Hono framework, SQLite database
-- **Admin Console**: React 18, TypeScript, Vite, TanStack Query
+- **Admin Console**: React 19, TypeScript, Vite, TanStack Query
 - **Widget**: Preact, TypeScript, Shadow DOM, <50KB bundle
 - **Auth**: Session-based with bcrypt, role-based access (Admin, Viewer)
 - **Storage**: Local filesystem for screenshots and attachments
