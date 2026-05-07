@@ -90,8 +90,8 @@ export function ScreenshotSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Screenshot Settings</CardTitle>
-        <CardDescription>Configure screenshot capture settings</CardDescription>
+        <CardTitle>{t('globalSettings.screenshotSettings')}</CardTitle>
+        <CardDescription>{t('globalSettings.screenshotSettingsDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -105,10 +105,10 @@ export function ScreenshotSettings() {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('system.saveChanges')
             )}
           </Button>
         </CardContent>

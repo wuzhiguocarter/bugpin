@@ -340,8 +340,8 @@ export function ProjectSettingsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] min-h-[67vh]">
         <DialogHeader>
-          <DialogTitle>Project Settings</DialogTitle>
-          <DialogDescription>Configure settings for "{project.name}"</DialogDescription>
+          <DialogTitle>{t('projectSettings.title')}</DialogTitle>
+          <DialogDescription>{t('projectSettings.configureSettingsFor', { name: project.name })}</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -356,22 +356,22 @@ export function ProjectSettingsDialog({
           >
             <TabsList className="flex h-auto w-full flex-shrink-0 flex-wrap justify-start gap-2 rounded-xl p-2">
               <TabsTrigger value="assignments" className="px-4 py-2">
-                Assignments
+                {t('projectSettings.tabAssignments')}
               </TabsTrigger>
               <TabsTrigger value="widgetDialog" className="px-4 py-2">
-                Widget Dialog
+                {t('projectSettings.tabWidgetDialog')}
               </TabsTrigger>
               <TabsTrigger value="widgetLauncherButton" className="px-4 py-2">
-                Widget Button
+                {t('projectSettings.tabWidgetButton')}
               </TabsTrigger>
               <TabsTrigger value="screenshot" className="px-4 py-2">
-                Screenshot
+                {t('projectSettings.tabScreenshot')}
               </TabsTrigger>
               <TabsTrigger value="notifications" className="px-4 py-2">
-                Notifications
+                {t('projectSettings.tabNotifications')}
               </TabsTrigger>
               <TabsTrigger value="whitelists" className="px-4 py-2">
-                Whitelists
+                {t('projectSettings.tabWhitelists')}
               </TabsTrigger>
             </TabsList>
 
@@ -379,9 +379,9 @@ export function ProjectSettingsDialog({
               <TabsContent value="assignments" className="mt-0">
                 <div className="space-y-5 rounded-xl border bg-card p-5">
                   <div className="space-y-1">
-                    <Label htmlFor="default-assignee">Default Assignee</Label>
+                    <Label htmlFor="default-assignee">{t('projectSettings.defaultAssigneeLabel')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      New reports from this project are assigned automatically to this user.
+                      {t('projectSettings.defaultAssigneeHint')}
                     </p>
                   </div>
 
@@ -405,16 +405,16 @@ export function ProjectSettingsDialog({
                       </div>
                     ) : isMissingAssignedUser ? (
                       <div className="space-y-1">
-                        <p className="font-medium">Current assignee unavailable</p>
+                        <p className="font-medium">{t('projectSettings.currentAssigneeUnavailable')}</p>
                         <p className="text-sm text-muted-foreground">
-                          This user can no longer receive default assignments for new reports.
+                          {t('projectSettings.assigneeNotReceiving')}
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        <p className="font-medium">No default assignee</p>
+                        <p className="font-medium">{t('projectSettings.noDefaultAssignee')}</p>
                         <p className="text-sm text-muted-foreground">
-                          New reports stay unassigned until somebody picks them up manually.
+                          {t('projectSettings.noDefaultAssigneeHint')}
                         </p>
                       </div>
                     )}
@@ -430,10 +430,10 @@ export function ProjectSettingsDialog({
                       <SelectValue placeholder={t('projectSettings.chooseDefaultAssignee')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={UNASSIGNED_VALUE}>No default assignee</SelectItem>
+                      <SelectItem value={UNASSIGNED_VALUE}>{t('projectSettings.noDefaultAssigneeOption')}</SelectItem>
                       {isMissingAssignedUser && defaultAssigneeUserId ? (
                         <SelectItem value={defaultAssigneeUserId}>
-                          Unavailable user (current setting)
+                          {t('projectSettings.unavailableUser')}
                         </SelectItem>
                       ) : null}
                       {assignableUsers?.map((user) => (
@@ -446,8 +446,7 @@ export function ProjectSettingsDialog({
 
                   {isMissingAssignedUser ? (
                     <p className="text-sm text-amber-600">
-                      The current default assignee is no longer assignable. New reports stay
-                      unassigned until you choose another user.
+                      {t('projectSettings.currentAssigneeLost')}
                     </p>
                   ) : null}
                 </div>
@@ -500,10 +499,10 @@ export function ProjectSettingsDialog({
                         htmlFor="use-custom-notifications"
                         className="text-sm font-medium"
                       >
-                        Use Custom Notifications
+                        {t('projectSettings.useCustomNotifications')}
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        Enable individual notification defaults for this project
+                        {t('projectSettings.useCustomNotificationsHint')}
                       </p>
                     </div>
                     <Switch
@@ -521,8 +520,8 @@ export function ProjectSettingsDialog({
                   {useCustomNotifications && (
                     <Tabs defaultValue="team">
                       <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="team">Team</TabsTrigger>
-                        <TabsTrigger value="reporter">Reporter</TabsTrigger>
+                        <TabsTrigger value="team">{t('common.team')}</TabsTrigger>
+                        <TabsTrigger value="reporter">{t('common.reporter')}</TabsTrigger>
                       </TabsList>
                       <TabsContent value="team" className="mt-4">
                         <NotificationSettingsForm
@@ -559,16 +558,16 @@ export function ProjectSettingsDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving || isLoading}>
             {isSaving ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
-              'Save Settings'
+              t('projectSettings.saveSettings')
             )}
           </Button>
         </DialogFooter>

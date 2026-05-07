@@ -41,6 +41,11 @@
   "discardConfirmTitle": "Discard report?",
   "discardConfirmDescription": "You have unsaved changes. Would you like to save as draft or discard?",
   "unsavedChanges": "You have unsaved changes",
+  "validation": {
+    "titleRequired": "Title is required",
+    "titleTooShort": "Title must be at least 4 characters",
+    "invalidEmail": "Invalid email address"
+  },
   "drawingTools": {
     "pen": "Pen",
     "arrow": "Arrow",

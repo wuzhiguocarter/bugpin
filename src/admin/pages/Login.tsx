@@ -94,7 +94,7 @@ export function Login() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 {...register('email')}
                 aria-invalid={!!errors.email}
               />

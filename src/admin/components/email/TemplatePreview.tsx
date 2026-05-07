@@ -24,7 +24,7 @@ export function TemplatePreview({ html, subject }: TemplatePreviewProps) {
   return (
     <div className="border rounded-lg overflow-hidden bg-background">
       <div className="border-b p-3 bg-muted/30">
-        <p className="text-xs text-muted-foreground">Subject</p>
+        <p className="text-xs text-muted-foreground">{t('common.subject')}</p>
         <p className="text-sm font-medium truncate">{subject}</p>
       </div>
       <iframe

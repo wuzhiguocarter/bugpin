@@ -41,6 +41,11 @@
   "discardConfirmTitle": "丢弃报告？",
   "discardConfirmDescription": "您有未保存的更改。要保存为草稿还是丢弃？",
   "unsavedChanges": "您有未保存的更改",
+  "validation": {
+    "titleRequired": "请填写标题",
+    "titleTooShort": "标题至少需要 4 个字符",
+    "invalidEmail": "邮箱地址无效"
+  },
   "drawingTools": {
     "pen": "画笔",
     "arrow": "箭头",

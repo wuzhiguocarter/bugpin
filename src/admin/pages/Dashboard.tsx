@@ -179,7 +179,7 @@ function StatusBadge({ status }: { status: string }) {
     open: t('dashboard.open'),
     in_progress: t('dashboard.inProgress'),
     resolved: t('dashboard.resolved'),
-    closed: 'Closed',
+    closed: t('dashboard.closed'),
   };
 
   return (

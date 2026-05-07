@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -21,8 +22,8 @@ import { Switch } from '../../components/ui/switch';
 import type { AppSettings } from '@shared/types';
 
 const systemSettingsSchema = z.object({
-  appName: z.string().min(1, 'Application name is required'),
-  appUrl: z.string().url('Please enter a valid URL').or(z.literal('')),
+  appName: z.string().min(1, i18next.t('system.applicationNameRequired')),
+  appUrl: z.string().url(i18next.t('system.invalidUrl')).or(z.literal('')),
   retentionDays: z.number().min(0, 'Must be 0 or more').max(3650, 'Must be 3650 or less'),
   updateCheckEnabled: z.boolean(),
 });
@@ -109,14 +110,14 @@ function SystemSettingsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>System Settings</CardTitle>
-        <CardDescription>Configure application settings and data retention</CardDescription>
+        <CardTitle>{t('system.systemSettingsSimple')}</CardTitle>
+        <CardDescription>{t('system.systemSettingsSimpleDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="app-name">
-              Application Name <span className="text-destructive">*</span>
+              {t('system.applicationNameLabel')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="app-name"
@@ -126,28 +127,28 @@ function SystemSettingsSection() {
             />
             {errors.appName && <p className="text-sm text-destructive">{errors.appName.message}</p>}
             <p className="text-xs text-muted-foreground">
-              Used as the sender name in email notifications
+              {t('system.applicationNameHint')}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="app-url">Application URL</Label>
+            <Label htmlFor="app-url">{t('system.applicationUrl')}</Label>
             <Input
               id="app-url"
               type="url"
-              placeholder="https://bugpin.example.com"
+              placeholder={t('system.applicationUrlPlaceholder')}
               {...register('appUrl')}
               aria-invalid={!!errors.appUrl}
             />
             {errors.appUrl && <p className="text-sm text-destructive">{errors.appUrl.message}</p>}
             <p className="text-xs text-muted-foreground">
-              Used for generating links in email notifications and GitHub issues
+              {t('system.applicationUrlHint')}
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="retention-days">
-              Data Retention (days) <span className="text-destructive">*</span>
+              {t('system.dataRetention')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="retention-days"
@@ -161,17 +162,15 @@ function SystemSettingsSection() {
               <p className="text-sm text-destructive">{errors.retentionDays.message}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Time to keep bug reports before automatic deletion. (1-3650 days) Set to 0 to never
-              delete.
+              {t('system.dataRetentionHint')}
             </p>
           </div>
 
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-0.5">
-              <Label htmlFor="update-check">Check for updates</Label>
+              <Label htmlFor="update-check">{t('system.checkForUpdates')}</Label>
               <p className="text-xs text-muted-foreground">
-                When enabled, BugPin checks GitHub once a day for new releases and shows a banner
-                to administrators when an update is available.
+                {t('system.checkForUpdatesHint')}
               </p>
             </div>
             <Controller
@@ -191,10 +190,10 @@ function SystemSettingsSection() {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('system.saveChanges')
             )}
           </Button>
         </CardContent>

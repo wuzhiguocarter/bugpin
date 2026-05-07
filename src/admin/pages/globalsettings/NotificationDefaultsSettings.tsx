@@ -66,11 +66,9 @@ export function NotificationDefaultsSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Notification Defaults</CardTitle>
+        <CardTitle>{t('globalSettings.notificationDefaults')}</CardTitle>
         <CardDescription>
-          Default notification preferences for all team members across all projects. Individual users
-          can override these in their notification settings. Projects can also override these in
-          their project settings.
+          {t('globalSettings.notificationDefaultsLong')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -81,10 +79,10 @@ export function NotificationDefaultsSettings() {
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('system.saveChanges')
               )}
             </Button>
           </div>

@@ -136,9 +136,9 @@ function BrandColorSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">Brand Colors</CardTitle>
+        <CardTitle className="flex items-center gap-2">{t('branding.brandColorsTitle')}</CardTitle>
         <CardDescription>
-          Configure the primary colors for buttons and interactive elements in the admin portal.
+          {t('branding.brandColorsConfigure')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -152,7 +152,7 @@ function BrandColorSection() {
           <div className="flex gap-2 pt-4 border-t">
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending && <Spinner size="sm" className="mr-2" />}
-              Save Colors
+              {t('branding.saveColors')}
             </Button>
             <Button
               type="button"
@@ -161,7 +161,7 @@ function BrandColorSection() {
               disabled={mutation.isPending}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset to Default
+              {t('branding.resetToDefault')}
             </Button>
           </div>
         </CardContent>
@@ -311,16 +311,16 @@ function IconSection() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Icon</CardTitle>
+          <CardTitle>{t('branding.iconCardTitle')}</CardTitle>
           <CardDescription>
-            Square icon for collapsed sidebar. PNG, JPEG, or WebP, max. 1MB. Resized to 256×256px.
+            {t('branding.iconCardDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
             {/* Light Mode Icon - light background */}
             <div className="space-y-3">
-              <Label>Light Mode</Label>
+              <Label>{t('branding.lightMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => openDialog('light')}
@@ -349,7 +349,7 @@ function IconSection() {
 
             {/* Dark Mode Icon - dark background */}
             <div className="space-y-3">
-              <Label>Dark Mode</Label>
+              <Label>{t('branding.darkMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => openDialog('dark')}
@@ -383,8 +383,8 @@ function IconSection() {
       <Dialog open={dialogOpen !== null} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {dialogOpen === 'light' ? 'Light' : 'Dark'} Mode Icon</DialogTitle>
-            <DialogDescription>Upload a new icon or remove the current one</DialogDescription>
+            <DialogTitle>{t('branding.editModeIconTitle', { mode: dialogOpen === 'light' ? t('branding.lightMode') : t('branding.darkMode') })}</DialogTitle>
+            <DialogDescription>{t('branding.editModeIconDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -435,12 +435,12 @@ function IconSection() {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('branding.uploadingDot')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Icon
+                    {t('branding.uploadNewIcon')}
                   </>
                 )}
               </Button>
@@ -456,21 +456,21 @@ function IconSection() {
                   {resetMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Removing...
+                      {t('branding.removingDot')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Icon
+                      {t('branding.removeIconBtn')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                Recommended: Square image, max 1MB
+                {t('branding.iconHint')}
                 <br />
-                Supported formats: PNG, JPEG, WebP
+                {t('branding.iconFormats')}
               </p>
             </div>
           </div>
@@ -481,8 +481,8 @@ function IconSection() {
       <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Crop Icon</DialogTitle>
-            <DialogDescription>Adjust the crop area to create a square icon</DialogDescription>
+            <DialogTitle>{t('branding.cropIcon')}</DialogTitle>
+            <DialogDescription>{t('branding.cropIconDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -503,7 +503,7 @@ function IconSection() {
 
             {/* Zoom Slider */}
             <div className="space-y-2">
-              <Label>Zoom</Label>
+              <Label>{t('branding.zoomLabel')}</Label>
               <input
                 type="range"
                 min={1}
@@ -518,16 +518,16 @@ function IconSection() {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCropCancel} disabled={uploading}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="button" onClick={handleCropSave} disabled={uploading}>
               {uploading ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Uploading...
+                  {t('branding.uploadingDot')}
                 </>
               ) : (
-                'Save & Upload'
+                t('branding.saveAndUpload')
               )}
             </Button>
           </DialogFooter>
@@ -610,16 +610,16 @@ function LogoSection() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Logo</CardTitle>
+          <CardTitle>{t('branding.logoCardTitle')}</CardTitle>
           <CardDescription>
-            Main logo for sidebar and email templates. SVG, PNG, JPEG, or WebP, max. 2MB.
+            {t('branding.logoCardDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
             {/* Light Mode Logo - light background */}
             <div className="space-y-3">
-              <Label>Light Mode</Label>
+              <Label>{t('branding.lightMode')}</Label>
               <div
                 className="relative group cursor-pointer w-full h-20 mx-auto"
                 onClick={() => setDialogOpen('light')}
@@ -648,7 +648,7 @@ function LogoSection() {
 
             {/* Dark Mode Logo - dark background */}
             <div className="space-y-3">
-              <Label>Dark Mode</Label>
+              <Label>{t('branding.darkMode')}</Label>
               <div
                 className="relative group cursor-pointer w-full h-20 mx-auto"
                 onClick={() => setDialogOpen('dark')}
@@ -682,8 +682,8 @@ function LogoSection() {
       <Dialog open={dialogOpen !== null} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {dialogOpen === 'light' ? 'Light' : 'Dark'} Mode Logo</DialogTitle>
-            <DialogDescription>Upload a new logo or remove the current one</DialogDescription>
+            <DialogTitle>{t('branding.editModeLogoTitle', { mode: dialogOpen === 'light' ? t('branding.lightMode') : t('branding.darkMode') })}</DialogTitle>
+            <DialogDescription>{t('branding.editModeLogoDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -734,12 +734,12 @@ function LogoSection() {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('branding.uploadingDot')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Logo
+                    {t('branding.uploadNewLogo')}
                   </>
                 )}
               </Button>
@@ -755,21 +755,21 @@ function LogoSection() {
                   {resetMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Removing...
+                      {t('branding.removingDot')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Logo
+                      {t('branding.removeLogoBtn')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                Any aspect ratio allowed, max 2MB
+                {t('branding.logoHint')}
                 <br />
-                Supported formats: SVG, PNG, JPEG, WebP
+                {t('branding.logoFormats')}
               </p>
             </div>
           </div>
@@ -830,13 +830,13 @@ function FaviconSection() {
     // Validate file type - PNG or JPEG for auto-generation
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Only PNG or JPEG files are allowed');
+      toast.error(t('branding.invalidIconTypeMessage'));
       return;
     }
 
     // Validate file size (1MB for source images)
     if (file.size > 1024 * 1024) {
-      toast.error('File size must not exceed 1MB');
+      toast.error(t('branding.fileTooLarge1MB'));
       return;
     }
 
@@ -858,17 +858,16 @@ function FaviconSection() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Favicon</CardTitle>
+          <CardTitle>{t('branding.faviconCardTitle')}</CardTitle>
           <CardDescription>
-            PNG or JPEG, min 512×512px, max. 1MB. Auto-generates all sizes for browsers, Apple Touch
-            Icon, and Android Chrome icons.
+            {t('branding.faviconCardDescription2')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
             {/* Light Mode Favicon */}
             <div className="space-y-3">
-              <Label>Light Mode</Label>
+              <Label>{t('branding.lightMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => setDialogOpen('light')}
@@ -889,7 +888,7 @@ function FaviconSection() {
 
             {/* Dark Mode Favicon */}
             <div className="space-y-3">
-              <Label>Dark Mode</Label>
+              <Label>{t('branding.darkMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => setDialogOpen('dark')}
@@ -911,8 +910,8 @@ function FaviconSection() {
       <Dialog open={dialogOpen !== null} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {dialogOpen === 'light' ? 'Light' : 'Dark'} Mode Favicon</DialogTitle>
-            <DialogDescription>Upload a new favicon or reset to default</DialogDescription>
+            <DialogTitle>{t('branding.editModeFaviconTitle', { mode: dialogOpen === 'light' ? t('branding.lightMode') : t('branding.darkMode') })}</DialogTitle>
+            <DialogDescription>{t('branding.editModeFaviconDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -953,12 +952,12 @@ function FaviconSection() {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('branding.uploadingDot')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Favicon
+                    {t('branding.uploadNewFavicon')}
                   </>
                 )}
               </Button>
@@ -974,19 +973,19 @@ function FaviconSection() {
                   {resetMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Resetting...
+                      {t('branding.resettingDot')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Reset to Default
+                      {t('branding.resetToDefaultBtn')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                PNG or JPEG, min 512×512px, max 1MB
+                {t('branding.faviconHint')}
               </p>
             </div>
           </div>

@@ -410,7 +410,7 @@ export function Reports() {
                 <SelectItem value="open">{t('dashboard.open')}</SelectItem>
                 <SelectItem value="in_progress">{t('dashboard.inProgress')}</SelectItem>
                 <SelectItem value="resolved">{t('dashboard.resolved')}</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="closed">{t('dashboard.closed')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -424,11 +424,11 @@ export function Reports() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('reports.allPriority')}</SelectItem>
-                <SelectItem value="highest">Highest</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="lowest">Lowest</SelectItem>
+                <SelectItem value="highest">{t('reports.priorityHighest')}</SelectItem>
+                <SelectItem value="high">{t('reports.priorityHigh')}</SelectItem>
+                <SelectItem value="medium">{t('reports.priorityMedium')}</SelectItem>
+                <SelectItem value="low">{t('reports.priorityLow')}</SelectItem>
+                <SelectItem value="lowest">{t('reports.priorityLowest')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -479,7 +479,7 @@ export function Reports() {
               <SelectContent>
                 <SelectItem value="all">{t('reports.allSources')}</SelectItem>
                 <SelectItem value="widget">{t('widget.widget')}</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="manual">{t('reports.sourceManual')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -519,7 +519,7 @@ export function Reports() {
                       {t('dashboard.resolved')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleBulkStatusUpdate('closed')}>
-                      Closed
+                      {t('dashboard.closed')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -533,19 +533,19 @@ export function Reports() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => handleBulkPriorityUpdate('highest')}>
-                      Highest
+                      {t('reports.priorityHighest')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleBulkPriorityUpdate('high')}>
-                      High
+                      {t('reports.priorityHigh')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleBulkPriorityUpdate('medium')}>
-                      Medium
+                      {t('reports.priorityMedium')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleBulkPriorityUpdate('low')}>
-                      Low
+                      {t('reports.priorityLow')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleBulkPriorityUpdate('lowest')}>
-                      Lowest
+                      {t('reports.priorityLowest')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -629,11 +629,11 @@ export function Reports() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="lowest">Lowest</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="highest">Highest</SelectItem>
+                    <SelectItem value="lowest">{t('reports.priorityLowest')}</SelectItem>
+                    <SelectItem value="low">{t('reports.priorityLow')}</SelectItem>
+                    <SelectItem value="medium">{t('reports.priorityMedium')}</SelectItem>
+                    <SelectItem value="high">{t('reports.priorityHigh')}</SelectItem>
+                    <SelectItem value="highest">{t('reports.priorityHighest')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -694,11 +694,11 @@ export function Reports() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NO_CHANNEL}>{t('reports.noChannel')}</SelectItem>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="chat">Chat</SelectItem>
-                    <SelectItem value="phone">Phone</SelectItem>
+                    <SelectItem value="email">{t('reports.channelEmail')}</SelectItem>
+                    <SelectItem value="chat">{t('reports.channelChat')}</SelectItem>
+                    <SelectItem value="phone">{t('reports.channelPhone')}</SelectItem>
                     <SelectItem value="qa">QA</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="other">{t('reports.channelOther')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -736,7 +736,7 @@ export function Reports() {
                 value={createForm.url}
                 onChange={(e) => updateCreateForm('url', e.target.value)}
                 onBlur={(e) => updateCreateForm('url', normalizeManualReportUrl(e.target.value))}
-                placeholder="https://example.com/page"
+                placeholder={t('reports.urlPlaceholder')}
               />
             </div>
 
@@ -835,7 +835,7 @@ export function Reports() {
                     <Checkbox
                       checked={selectedIds.has(report.id)}
                       onCheckedChange={(checked) => handleSelectOne(report.id, checked as boolean)}
-                      aria-label={`Select ${report.title}`}
+                      aria-label={t('reports.selectReport', { title: report.title })}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -874,8 +874,8 @@ export function Reports() {
               {t('reports.page', { current: data.page, total: data.totalPages })}
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleFilterChange('page', String(page - 1))} disabled={page <= 1}>Previous</Button>
-              <Button variant="outline" size="sm" onClick={() => handleFilterChange('page', String(page + 1))} disabled={page >= data.totalPages}>Next</Button>
+              <Button variant="outline" size="sm" onClick={() => handleFilterChange('page', String(page - 1))} disabled={page <= 1}>{t('common.previous')}</Button>
+              <Button variant="outline" size="sm" onClick={() => handleFilterChange('page', String(page + 1))} disabled={page >= data.totalPages}>{t('common.next')}</Button>
             </div>
           </div>
         )}
@@ -896,15 +896,15 @@ export function Reports() {
                   aria-label={t('reports.report')}
                 />
               </TableHead>
-              <TableHead>Report</TableHead>
-              <TableHead>Project</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Assignee</TableHead>
+              <TableHead>{t('reports.report')}</TableHead>
+              <TableHead>{t('reports.project')}</TableHead>
+              <TableHead>{t('common.status')}</TableHead>
+              <TableHead>{t('common.priority')}</TableHead>
+              <TableHead>{t('reports.assignee')}</TableHead>
               <TableHead className="w-[50px]">
                 <RefreshCw className="h-4 w-4" />
               </TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>{t('reports.created')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -917,7 +917,7 @@ export function Reports() {
             ) : data?.data?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                  No reports found
+                  {t('reports.noReportsFound')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -931,7 +931,7 @@ export function Reports() {
                     <Checkbox
                       checked={selectedIds.has(report.id)}
                       onCheckedChange={(checked) => handleSelectOne(report.id, checked as boolean)}
-                      aria-label={`Select ${report.title}`}
+                      aria-label={t('reports.selectReport', { title: report.title })}
                     />
                   </TableCell>
                   <TableCell>
@@ -984,7 +984,7 @@ export function Reports() {
                 onClick={() => handleFilterChange('page', String(page - 1))}
                 disabled={page <= 1}
               >
-                Previous
+                {t('common.previous')}
               </Button>
               <Button
                 variant="outline"
@@ -992,7 +992,7 @@ export function Reports() {
                 onClick={() => handleFilterChange('page', String(page + 1))}
                 disabled={page >= data.totalPages}
               >
-                Next
+                {t('common.next')}
               </Button>
             </div>
           </div>
@@ -1008,7 +1008,7 @@ function StatusBadge({ status }: { status: string }) {
     open: t('dashboard.open'),
     in_progress: t('dashboard.inProgress'),
     resolved: t('dashboard.resolved'),
-    closed: 'Closed',
+    closed: t('dashboard.closed'),
   };
 
   return (
@@ -1037,7 +1037,7 @@ function formatDate(dateString: string): string {
   } else if (diffDays === 1) {
     return i18next.t('reports.yesterday');
   } else if (diffDays < 7) {
-    return `${diffDays} days ago`;
+    return i18next.t('reports.daysAgo', { count: diffDays });
   } else {
     return formatAbsoluteDate(date);
   }

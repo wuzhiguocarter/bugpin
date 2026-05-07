@@ -131,9 +131,9 @@ function WidgetLauncherButtonSettingsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Widget Button Settings</CardTitle>
+        <CardTitle>{t('globalSettings.widgetLauncherButtonSettings')}</CardTitle>
         <CardDescription>
-          Configure the appearance and behavior of the floating widget launcher button.
+          {t('globalSettings.widgetLauncherButtonSettingsDescription')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -145,10 +145,10 @@ function WidgetLauncherButtonSettingsSection() {
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('system.saveChanges')
               )}
             </Button>
             <Button
@@ -158,7 +158,7 @@ function WidgetLauncherButtonSettingsSection() {
               disabled={mutation.isPending}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset to Default
+              {t('branding.resetToDefault')}
             </Button>
           </div>
         </CardContent>

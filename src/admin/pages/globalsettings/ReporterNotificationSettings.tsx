@@ -74,10 +74,9 @@ export function ReporterNotificationSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reporter Notifications</CardTitle>
+        <CardTitle>{t('globalSettings.reporterNotifications', 'Reporter Notifications')}</CardTitle>
         <CardDescription>
-          Configure default notification and messaging settings for bug report submitters. These can
-          be overridden per project.
+          {t('globalSettings.reporterNotificationsLong')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -186,10 +185,10 @@ export function ReporterNotificationSettings() {
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('system.saveChanges')
               )}
             </Button>
           </div>

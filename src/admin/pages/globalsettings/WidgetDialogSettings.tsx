@@ -88,9 +88,9 @@ export function WidgetDialogSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">Widget Dialog Settings</CardTitle>
+        <CardTitle className="flex items-center gap-2">{t('globalSettings.widgetDialogSettings')}</CardTitle>
         <CardDescription>
-          Configure the colors for buttons inside the widget dialog (submit, action buttons).
+          {t('globalSettings.widgetDialogSettingsDescription')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>

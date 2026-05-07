@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -203,8 +204,8 @@ function ProfileSection({ user }: { user: User | null }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account information</CardDescription>
+          <CardTitle>{t('profile.profileCard')}</CardTitle>
+          <CardDescription>{t('profile.profileCardDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -227,7 +228,7 @@ function ProfileSection({ user }: { user: User | null }) {
               <p className="text-lg font-medium">{user?.name}</p>
               <p className="text-muted-foreground">{user?.email}</p>
               <Badge variant="secondary" className="mt-1 capitalize">
-                {user?.role}
+                {user?.role ? t(`users.${user.role}`, { defaultValue: user.role }) : ''}
               </Badge>
             </div>
           </div>
@@ -276,7 +277,7 @@ function ProfileSection({ user }: { user: User | null }) {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('profile.uploading')}
                   </>
                 ) : (
                   <>
@@ -297,7 +298,7 @@ function ProfileSection({ user }: { user: User | null }) {
                   {deleteMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Removing...
+                      {t('profile.removing')}
                     </>
                   ) : (
                     <>
@@ -359,7 +360,7 @@ function ProfileSection({ user }: { user: User | null }) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCropCancel} disabled={uploading}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="button" onClick={handleCropSave} disabled={uploading}>
               {uploading ? (
@@ -378,12 +379,13 @@ function ProfileSection({ user }: { user: User | null }) {
   );
 }
 
-const updateProfileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
-});
+const updateProfileSchema = () =>
+  z.object({
+    name: z.string().min(2, i18next.t('profile.nameMinLength')),
+    email: z.string().min(1, i18next.t('profile.emailRequired')).email(i18next.t('profile.invalidEmail')),
+  });
 
-type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
+type UpdateProfileFormData = z.infer<ReturnType<typeof updateProfileSchema>>;
 
 function UpdateProfileSection({ user }: { user: User | null }) {
   const { t } = useTranslation('profile');
@@ -401,7 +403,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
     reset,
     formState: { errors },
   } = useForm<UpdateProfileFormData>({
-    resolver: zodResolver(updateProfileSchema),
+    resolver: zodResolver(updateProfileSchema()),
     defaultValues: {
       name: user?.name || '',
       email: user?.email || '',
@@ -470,7 +472,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="profile-name">
-              Name <span className="text-destructive">*</span>
+              {t('profile.name')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="profile-name"
@@ -499,7 +501,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
               t('profile.saveChanges')
@@ -511,18 +513,19 @@ function UpdateProfileSection({ user }: { user: User | null }) {
   );
 }
 
-const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your new password'),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+const changePasswordSchema = () =>
+  z
+    .object({
+      currentPassword: z.string().min(1, i18next.t('profile.currentPasswordRequired')),
+      newPassword: z.string().min(8, i18next.t('profile.passwordMinLength')),
+      confirmPassword: z.string().min(1, i18next.t('profile.confirmNewPasswordRequired')),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: i18next.t('profile.passwordsDoNotMatch'),
+      path: ['confirmPassword'],
+    });
 
-type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+type ChangePasswordFormData = z.infer<ReturnType<typeof changePasswordSchema>>;
 
 function ChangePasswordSection() {
   const { t } = useTranslation('profile');
@@ -532,7 +535,7 @@ function ChangePasswordSection() {
     reset,
     formState: { errors },
   } = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(changePasswordSchema()),
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -619,7 +622,7 @@ function ChangePasswordSection() {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Changing...
+                {t('profile.changing')}
               </>
             ) : (
               t('profile.changePasswordBtn')

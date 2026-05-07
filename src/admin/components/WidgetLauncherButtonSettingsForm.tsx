@@ -361,11 +361,16 @@ export function WidgetLauncherButtonSettingsForm({
               <SelectItem value="none">{t('widgetLauncherButton.noIcon')}</SelectItem>
               {AVAILABLE_ICONS.map((iconOption) => {
                 const IconComponent = iconOption.icon;
+                const labelKey = iconOption.value === 'bug'
+                  ? 'widgetLauncherButton.bug'
+                  : iconOption.value === 'message-square'
+                  ? 'widgetLauncherButton.message'
+                  : 'widgetLauncherButton.alert';
                 return (
                   <SelectItem key={iconOption.value} value={iconOption.value}>
                     <div className="flex items-center gap-2">
                       <IconComponent className="h-4 w-4" />
-                      <span>{iconOption.label}</span>
+                      <span>{t(labelKey)}</span>
                     </div>
                   </SelectItem>
                 );
@@ -425,8 +430,8 @@ export function WidgetLauncherButtonSettingsForm({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="auto">{t('widgetLauncherButton.autoDetect')}</SelectItem>
-            <SelectItem value="light">Light</SelectItem>
-            <SelectItem value="dark">Dark</SelectItem>
+            <SelectItem value="light">{t('widgetLauncherButton.light')}</SelectItem>
+            <SelectItem value="dark">{t('widgetLauncherButton.dark')}</SelectItem>
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
@@ -438,16 +443,16 @@ export function WidgetLauncherButtonSettingsForm({
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <Label htmlFor="enable-hover-scale-effect" className="text-sm font-normal">
-            Hover Scale Effect
+            {t('widgetLauncherButton.hoverScaleEffect')}
           </Label>
           <p className="text-xs text-muted-foreground">
             {!showCustomToggle || !useCustomSettings
-              ? `Using global default (${globalSettings?.widgetLauncherButton.enableHoverScaleEffect ? 'enabled' : 'disabled'})`
+              ? t('widgetLauncherButton.usingGlobalDefault', { state: globalSettings?.widgetLauncherButton.enableHoverScaleEffect ? t('common.enabled') : t('common.disabled') })
               : value.enableHoverScaleEffect === undefined
-                ? `Using global default (${globalSettings?.widgetLauncherButton.enableHoverScaleEffect ? 'enabled' : 'disabled'})`
+                ? t('widgetLauncherButton.usingGlobalDefault', { state: globalSettings?.widgetLauncherButton.enableHoverScaleEffect ? t('common.enabled') : t('common.disabled') })
                 : effectiveEnableHoverScaleEffect
-                  ? 'Enabled for this project'
-                  : 'Disabled for this project'}
+                  ? t('widgetLauncherButton.hoverScaleDescription_enabled')
+                  : t('widgetLauncherButton.hoverScaleDescription_disabled')}
           </p>
         </div>
         <Switch
@@ -531,8 +536,8 @@ export function WidgetLauncherButtonSettingsForm({
       }}
       onChange={(colors) => onChange({ ...value, ...colors })}
       disabled={disabled}
-      buttonColorLabel="Button Color"
-      textColorLabel="Text/Icon Color"
+      buttonColorLabel={t('themeColors.buttonColor')}
+      textColorLabel={t('themeColors.textColorIconColor')}
     />
   );
 

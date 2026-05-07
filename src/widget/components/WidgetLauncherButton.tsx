@@ -127,7 +127,7 @@ export const WidgetLauncherButton: FunctionComponent<WidgetLauncherButtonProps> 
   const tooltipTextColor = isDarkMode ? darkTextColor : lightTextColor;
 
   const borderRadius = buttonShape === 'round' ? '50%' : '8px';
-  const ariaLabel = buttonText || t('launcher.reportBug');
+  const ariaLabel = buttonText || t('reportBug');
 
   // For round shape, padding scales with icon size (half the icon size)
   const padding = buttonShape === 'round' ? `${buttonIconSize / 2}px` : '12px 20px';

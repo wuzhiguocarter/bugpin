@@ -82,9 +82,9 @@ export function SecuritySettings() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          <CardTitle>Security Settings</CardTitle>
+          <CardTitle>{t('security.securitySettingsTitle')}</CardTitle>
         </div>
-        <CardDescription>Configure rate limiting and session settings</CardDescription>
+        <CardDescription>{t('security.securitySettingsTitleDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
@@ -92,9 +92,9 @@ export function SecuritySettings() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="enforce-https">Enforce HTTPS</Label>
+                <Label htmlFor="enforce-https">{t('security.enforceHttps')}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Redirect HTTP requests to HTTPS and enable HSTS header
+                  {t('security.enforceHttpsHint')}
                 </p>
               </div>
               <Switch
@@ -108,9 +108,7 @@ export function SecuritySettings() {
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Requires a TLS-terminating reverse proxy.</strong> Your proxy must set the{' '}
-                  <code className="bg-muted px-1 rounded">x-forwarded-proto</code> header. Without
-                  proper proxy configuration, this setting will not provide HTTPS protection.
+                  {t('security.httpsProxyWarning')}
                 </AlertDescription>
               </Alert>
             )}
@@ -122,13 +120,12 @@ export function SecuritySettings() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Rate limiting helps prevent abuse by limiting the number of requests from a single IP
-              address. This applies globally to all projects.
+              {t('security.rateLimitInfo')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="rate-limit">Requests per Minute per IP</Label>
+            <Label htmlFor="rate-limit">{t('security.requestsPerMinuteIp')}</Label>
             <Input
               id="rate-limit"
               type="number"
@@ -141,12 +138,12 @@ export function SecuritySettings() {
               required
             />
             <p className="text-xs text-muted-foreground">
-              Maximum number of API requests allowed per minute from a single IP address (1-1000)
+              {t('security.rateLimitHint')}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="session-max-age">Session Duration (Days)</Label>
+            <Label htmlFor="session-max-age">{t('security.sessionDurationDays')}</Label>
             <Input
               id="session-max-age"
               type="number"
@@ -159,12 +156,12 @@ export function SecuritySettings() {
               required
             />
             <p className="text-xs text-muted-foreground">
-              Number of days before a user session expires and requires re-login (1-365)
+              {t('security.sessionDurationHint')}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invitation-expiration">Invitation Expiration (Days)</Label>
+            <Label htmlFor="invitation-expiration">{t('security.invitationExpirationDays')}</Label>
             <Input
               id="invitation-expiration"
               type="number"
@@ -180,7 +177,7 @@ export function SecuritySettings() {
               required
             />
             <p className="text-xs text-muted-foreground">
-              Number of days before an invitation link expires (1-30)
+              {t('security.invitationExpirationHint')}
             </p>
           </div>
 
@@ -188,10 +185,10 @@ export function SecuritySettings() {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('security.saveChanges')
             )}
           </Button>
         </CardContent>

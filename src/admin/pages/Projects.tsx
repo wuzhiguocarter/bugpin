@@ -306,9 +306,7 @@ export function Projects() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('projects.regenerateApiKey')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to regenerate the API key for "{regenerateProject?.name}"? This
-              will invalidate the current key and any widgets using it will stop working until
-              updated.
+              {t('projects.regenerateConfirm', { name: regenerateProject?.name ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -316,7 +314,7 @@ export function Projects() {
             <AlertDialogAction
               onClick={() => regenerateProject && regenerateKeyMutation.mutate(regenerateProject)}
             >
-              Regenerate
+              {t('common.regenerate')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -336,8 +334,7 @@ export function Projects() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('projects.deleteProject')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteProject?.name}"? This action cannot be undone
-              and all associated reports will be deleted.
+              {t('projects.deleteConfirm', { name: deleteProject?.name ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -360,7 +357,7 @@ export function Projects() {
               disabled={deleteConfirmation !== 'DELETE'}
               onClick={() => deleteProject && deleteMutation.mutate(deleteProject.id)}
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -543,7 +540,7 @@ function SortableProjectCard({
           <CardContent className="space-y-4">
             {/* API Key */}
             <div className="space-y-2">
-              <Label>{t('projects.apiKeyFor', { name: '' }).replace('"" 的 API 密钥', 'API Key')}</Label>
+              <Label>{t('projects.apiKey')}</Label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 min-w-0 px-3 py-2 bg-muted rounded-lg text-sm font-mono text-muted-foreground break-all">
                   {project.apiKey}
@@ -626,7 +623,7 @@ function CreateProjectModal({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="project-name">
-                Project Name <span className="text-destructive">*</span>
+                {t('projects.projectName')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="project-name"
@@ -640,13 +637,13 @@ function CreateProjectModal({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Creating...
+                  {t('common.creating')}
                 </>
               ) : (
                 t('common.create')
@@ -718,16 +715,15 @@ function ApiKeyModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>API Key for "{projectName}"</DialogTitle>
+          <DialogTitle>{t('projects.apiKeyFor', { name: projectName })}</DialogTitle>
           <DialogDescription>
-            Your API key and widget snippet are ready. You can always find these in the project
-            settings.
+            {t('projects.apiKeyReady')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>{t('projects.apiKeyFor', { name: '' }).replace('"" 的 API 密钥', 'API Key')}</Label>
+            <Label>{t('projects.apiKey')}</Label>
             <code className="block px-3 py-2 bg-muted rounded-lg text-sm font-mono break-all">
               {apiKey}
             </code>
@@ -735,7 +731,7 @@ function ApiKeyModal({
               {copiedKey ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  Copied!
+                  {t('common.copied')}
                 </>
               ) : (
                 <>
@@ -755,7 +751,7 @@ function ApiKeyModal({
               {copiedSnippet ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  Copied!
+                  {t('common.copied')}
                 </>
               ) : (
                 <>

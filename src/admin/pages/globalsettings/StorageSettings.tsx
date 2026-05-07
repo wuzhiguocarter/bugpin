@@ -42,6 +42,7 @@ interface MigrationProgress {
 }
 
 export function StorageSettings() {
+  const { t } = useTranslation();
   const { data: featureStatus, isLoading } = useQuery({
     queryKey: ['license-features'],
     queryFn: licenseApi.getFeatures,
@@ -63,8 +64,8 @@ export function StorageSettings() {
     return (
       <UpgradePrompt
         feature="s3-storage"
-        title="S3 Storage"
-        description="Store screenshots and attachments in S3-compatible object storage. Supports AWS S3, MinIO, DigitalOcean Spaces, and more."
+        title={t('storage.s3StorageTitle')}
+        description={t('storage.s3StoragePromptDescription')}
       />
     );
   }
@@ -132,7 +133,7 @@ function StorageSettingsSection() {
       toast.success(t('storage.settingsSaved'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to save settings');
+      toast.error(err.response?.data?.message || t('storage.saveFailed'));
     },
   });
 
@@ -182,26 +183,26 @@ function StorageSettingsSection() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1.5">
-            <CardTitle>Storage Settings</CardTitle>
+            <CardTitle>{t('storage.storageSettingsTitle')}</CardTitle>
             <CardDescription>
-              Configure S3-compatible storage for screenshots and attachments
+              {t('storage.storageSettingsTitleDescription')}
             </CardDescription>
           </div>
           {settings?.s3Enabled &&
             (connectionStatus === 'online' ? (
               <Badge variant="outline" className="gap-1 status-online">
                 <Cloud className="h-3 w-3" />
-                Online
+                {t('storage.online')}
               </Badge>
             ) : connectionStatus === 'offline' ? (
               <Badge variant="outline" className="gap-1 status-offline">
                 <CloudOff className="h-3 w-3" />
-                Offline
+                {t('storage.offline')}
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1 status-unknown">
                 <CloudOff className="h-3 w-3" />
-                Unknown
+                {t('storage.unknown')}
               </Badge>
             ))}
         </div>
@@ -211,10 +212,10 @@ function StorageSettingsSection() {
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="s3-enabled" className="text-base">
-                Enable S3 Storage
+                {t('storage.enableS3Storage')}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Use S3-compatible storage instead of local filesystem
+                {t('storage.enableS3StorageHint')}
               </p>
             </div>
             <Switch
@@ -227,7 +228,7 @@ function StorageSettingsSection() {
           {formData.s3Enabled && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="s3-bucket">Bucket Name</Label>
+                <Label htmlFor="s3-bucket">{t('storage.bucketName')}</Label>
                 <Input
                   id="s3-bucket"
                   value={formData.s3Config.bucket}
@@ -237,14 +238,14 @@ function StorageSettingsSection() {
                       s3Config: { ...formData.s3Config, bucket: e.target.value },
                     })
                   }
-                  placeholder="my-bugpin-bucket"
+                  placeholder={t('storage.bucketNamePlaceholder')}
                   required={formData.s3Enabled}
                 />
-                <p className="text-sm text-muted-foreground">The name of your S3 bucket</p>
+                <p className="text-sm text-muted-foreground">{t('storage.bucketNameHint')}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="s3-region">Region</Label>
+                <Label htmlFor="s3-region">{t('storage.regionLabel')}</Label>
                 <Input
                   id="s3-region"
                   value={formData.s3Config.region}
@@ -254,16 +255,16 @@ function StorageSettingsSection() {
                       s3Config: { ...formData.s3Config, region: e.target.value },
                     })
                   }
-                  placeholder="us-east-1"
+                  placeholder={t('storage.regionPlaceholder')}
                   required={formData.s3Enabled}
                 />
                 <p className="text-sm text-muted-foreground">
-                  AWS region or S3-compatible service region
+                  {t('storage.regionHint')}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="s3-access-key">Access Key ID</Label>
+                <Label htmlFor="s3-access-key">{t('storage.accessKeyIdLabel')}</Label>
                 <Input
                   id="s3-access-key"
                   value={formData.s3Config.accessKeyId}
@@ -277,12 +278,12 @@ function StorageSettingsSection() {
                   required={formData.s3Enabled}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Your AWS access key ID or equivalent
+                  {t('storage.accessKeyIdHint')}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="s3-secret-key">Secret Access Key</Label>
+                <Label htmlFor="s3-secret-key">{t('storage.secretAccessKeyLabel')}</Label>
                 <Input
                   id="s3-secret-key"
                   type="password"
@@ -297,12 +298,12 @@ function StorageSettingsSection() {
                   required={formData.s3Enabled}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Your AWS secret access key or equivalent
+                  {t('storage.secretAccessKeyHint')}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="s3-endpoint">Custom Endpoint (Optional)</Label>
+                <Label htmlFor="s3-endpoint">{t('storage.customEndpoint')}</Label>
                 <Input
                   id="s3-endpoint"
                   value={formData.s3Config.endpoint}
@@ -312,11 +313,10 @@ function StorageSettingsSection() {
                       s3Config: { ...formData.s3Config, endpoint: e.target.value },
                     })
                   }
-                  placeholder="https://s3.example.com"
+                  placeholder={t('storage.customEndpointPlaceholder')}
                 />
                 <p className="text-sm text-muted-foreground">
-                  For S3-compatible services (MinIO, DigitalOcean Spaces, etc.). Leave blank for AWS
-                  S3.
+                  {t('storage.customEndpointHint')}
                 </p>
               </div>
 
@@ -325,10 +325,10 @@ function StorageSettingsSection() {
                   {mutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Saving...
+                      {t('common.saving')}
                     </>
                   ) : (
-                    'Save Changes'
+                    t('storage.saveChanges')
                   )}
                 </Button>
 
@@ -341,10 +341,10 @@ function StorageSettingsSection() {
                   {testing ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Testing...
+                      {t('storage.testing')}
                     </>
                   ) : (
-                    'Test Connection'
+                    t('storage.testConnectionBtn')
                   )}
                 </Button>
               </div>
@@ -356,10 +356,10 @@ function StorageSettingsSection() {
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('storage.saveChanges')
               )}
             </Button>
           )}
@@ -466,8 +466,8 @@ function MigrationSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Storage Migration</CardTitle>
-        <CardDescription>Migrate existing files from local storage to S3</CardDescription>
+        <CardTitle>{t('storage.storageMigration')}</CardTitle>
+        <CardDescription>{t('storage.storageMigrationDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Storage Statistics */}
@@ -475,21 +475,21 @@ function MigrationSection() {
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <HardDrive className="h-4 w-4" />
-              <span>Local Files</span>
+              <span>{t('storage.localFiles')}</span>
             </div>
             <p className="text-2xl font-bold">{stats?.localFiles || 0}</p>
           </div>
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <Cloud className="h-4 w-4" />
-              <span>S3 Files</span>
+              <span>{t('storage.s3Files')}</span>
             </div>
             <p className="text-2xl font-bold">{stats?.s3Files || 0}</p>
           </div>
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
               <Upload className="h-4 w-4" />
-              <span>Total Size</span>
+              <span>{t('storage.totalSize')}</span>
             </div>
             <p className="text-2xl font-bold">
               {((stats?.totalSizeBytes || 0) / 1024 / 1024).toFixed(1)} MB
@@ -501,15 +501,15 @@ function MigrationSection() {
         {isRunning && progress && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Migrating files...</span>
+              <span>{t('storage.migratingFiles')}</span>
               <span>
                 {progress.processedFiles} / {progress.totalFiles}
               </span>
             </div>
             <Progress value={migrationProgress} />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>✅ {progress.successCount} succeeded</span>
-              <span>❌ {progress.failureCount} failed</span>
+              <span>✅ {progress.successCount} {t('storage.succeeded')}</span>
+              <span>❌ {progress.failureCount} {t('storage.failed')}</span>
             </div>
           </div>
         )}
@@ -518,7 +518,7 @@ function MigrationSection() {
         {progress && progress.errors.length > 0 && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm">
             <div className="font-semibold text-destructive">
-              Migration errors ({progress.errors.length}):
+              {t('storage.migrationErrors', { count: progress.errors.length })}
             </div>
             <ul className="mt-2 space-y-1 text-destructive/80">
               {progress.errors.slice(0, 5).map((error, i) => (
@@ -526,7 +526,7 @@ function MigrationSection() {
                   • {error.filename}: {error.error}
                 </li>
               ))}
-              {progress.errors.length > 5 && <li>... and {progress.errors.length - 5} more</li>}
+              {progress.errors.length > 5 && <li>{t('storage.andMore', { count: progress.errors.length - 5 })}</li>}
             </ul>
           </div>
         )}
@@ -537,10 +537,10 @@ function MigrationSection() {
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
                 <Label htmlFor="delete-local" className="text-base">
-                  Delete local files after upload
+                  {t('storage.deleteLocalAfterUpload')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Removes files from local storage after successful S3 upload
+                  {t('storage.deleteLocalAfterUploadHint')}
                 </p>
               </div>
               <Switch id="delete-local" checked={deleteLocal} onCheckedChange={setDeleteLocal} />
@@ -548,13 +548,12 @@ function MigrationSection() {
 
             <Button onClick={startMigration} className="w-full">
               <Upload className="h-4 w-4 mr-2" />
-              Start Migration ({stats?.localFiles || 0} files)
+              {t('storage.startMigrationFiles', { count: stats?.localFiles || 0 })}
             </Button>
 
             {deleteLocal && (
               <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-                Warning: Local files will be permanently deleted after upload. Make sure you have
-                backups!
+                {t('storage.deleteWarning')}
               </div>
             )}
           </div>
@@ -562,19 +561,19 @@ function MigrationSection() {
 
         {isRunning && (
           <Button onClick={cancelMigration} variant="destructive" className="w-full">
-            Cancel Migration
+            {t('storage.cancelMigrationBtn')}
           </Button>
         )}
 
         {!hasLocalFiles && !isRunning && (
           <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-600">
-            All files are already stored in S3. No migration needed.
+            {t('storage.alreadyMigrated')}
           </div>
         )}
 
         {/* CLI Alternative */}
         <div className="rounded-lg border bg-muted p-4 text-sm">
-          <strong>Alternative:</strong> You can also migrate files using the CLI:
+          <strong>{t('storage.cliAlternative')}</strong>
           <pre className="mt-2 p-2 bg-background rounded text-xs">
             cd src/server && bun run scripts/migrate-to-s3.ts
           </pre>

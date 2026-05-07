@@ -141,7 +141,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{buttonColorLabel} (Hover)</Label>
+            <Label>{buttonColorLabel} {t('themeColors.hover')}</Label>
             <ColorPicker
               value={value.lightButtonHoverColor}
               onChange={(color) => onChange({ lightButtonHoverColor: color })}
@@ -149,7 +149,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{textColorLabel} (Hover)</Label>
+            <Label>{textColorLabel} {t('themeColors.hover')}</Label>
             <ColorPicker
               value={value.lightTextHoverColor}
               onChange={(color) => onChange({ lightTextHoverColor: color })}
@@ -228,7 +228,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{buttonColorLabel} (Hover)</Label>
+            <Label>{buttonColorLabel} {t('themeColors.hover')}</Label>
             <ColorPicker
               value={value.darkButtonHoverColor}
               onChange={(color) => onChange({ darkButtonHoverColor: color })}
@@ -236,7 +236,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{textColorLabel} (Hover)</Label>
+            <Label>{textColorLabel} {t('themeColors.hover')}</Label>
             <ColorPicker
               value={value.darkTextHoverColor}
               onChange={(color) => onChange({ darkTextHoverColor: color })}
@@ -247,7 +247,7 @@ export function ThemeColorPicker({
         {showSurfaceColors && (
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="space-y-2">
-              <Label>Background Color</Label>
+              <Label>{t('themeColors.backgroundColor')}</Label>
               <ColorPicker
                 value={value.darkBackgroundColor ?? '#0a0a0a'}
                 onChange={(color) => onChange({ darkBackgroundColor: color })}
@@ -255,7 +255,7 @@ export function ThemeColorPicker({
               />
             </div>
             <div className="space-y-2">
-              <Label>Secondary Color</Label>
+              <Label>{t('themeColors.secondaryColor')}</Label>
               <ColorPicker
                 value={value.darkSecondaryColor ?? '#262626'}
                 onChange={(color) => onChange({ darkSecondaryColor: color })}
@@ -263,7 +263,7 @@ export function ThemeColorPicker({
               />
             </div>
             <div className="space-y-2">
-              <Label>Input Field Color</Label>
+              <Label>{t('themeColors.inputFieldColor')}</Label>
               <ColorPicker
                 value={value.darkInputColor ?? '#1a1a1a'}
                 onChange={(color) => onChange({ darkInputColor: color })}
@@ -271,7 +271,7 @@ export function ThemeColorPicker({
               />
             </div>
             <div className="space-y-2">
-              <Label>Text Color</Label>
+              <Label>{t('themeColors.textColor')}</Label>
               <ColorPicker
                 value={value.darkForegroundColor ?? '#fafafa'}
                 onChange={(color) => onChange({ darkForegroundColor: color })}

@@ -192,9 +192,9 @@ export function ReportDetail() {
   if (error || !data?.report) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Report not found</p>
+        <p className="text-muted-foreground">{t('reportDetail.reportNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/reports')} className="mt-4">
-          Back to Reports
+          {t('reportDetail.backToReports')}
         </Button>
       </div>
     );
@@ -468,7 +468,7 @@ export function ReportDetail() {
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Description</CardTitle>
+              <CardTitle>{t('reportDetail.description')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-muted-foreground">
@@ -788,10 +788,10 @@ export function ReportDetail() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="open">{t('dashboard.open')}</SelectItem>
+                        <SelectItem value="in_progress">{t('dashboard.inProgress')}</SelectItem>
+                        <SelectItem value="resolved">{t('dashboard.resolved')}</SelectItem>
+                        <SelectItem value="closed">{t('dashboard.closed')}</SelectItem>
                       </SelectContent>
                     </Select>
                     {editData.status === 'resolved' && report.reporterEmail && messagingEnabled && (
@@ -806,13 +806,13 @@ export function ReportDetail() {
                         >
                           <MessageSquare className="h-3 w-3" />
                           {showResolveMessage
-                            ? 'Remove message for reporter'
-                            : 'Add a message for the reporter?'}
+                            ? t('reportDetail.removeMessage')
+                            : t('reportDetail.addMessage')}
                         </button>
                         {showResolveMessage && (
                           <>
                             <Textarea
-                              placeholder="Optional message to send to the reporter..."
+                              placeholder={t('reportDetail.optionalMessage')}
                               value={resolveMessage}
                               onChange={(e) => setResolveMessage(e.target.value)}
                               rows={3}
@@ -825,7 +825,7 @@ export function ReportDetail() {
                                   setResolveCcSender(checked === true)
                                 }
                               />
-                              t('reportDetail.sendMeACopy')
+                              {t('reportDetail.sendMeACopy')}
                             </label>
                           </>
                         )}
@@ -849,11 +849,11 @@ export function ReportDetail() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lowest">Lowest</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="highest">Highest</SelectItem>
+                      <SelectItem value="lowest">{t('reports.priorityLowest')}</SelectItem>
+                      <SelectItem value="low">{t('reports.priorityLow')}</SelectItem>
+                      <SelectItem value="medium">{t('reports.priorityMedium')}</SelectItem>
+                      <SelectItem value="high">{t('reports.priorityHigh')}</SelectItem>
+                      <SelectItem value="highest">{t('reports.priorityHighest')}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -873,7 +873,7 @@ export function ReportDetail() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
+                      <SelectItem value={UNASSIGNED_VALUE}>{t('common.unassigned')}</SelectItem>
                       {assignableUsers.map((assignee) => (
                         <SelectItem key={assignee.id} value={assignee.id}>
                           <AssigneeDisplay user={assignee} size="sm" />
@@ -920,19 +920,19 @@ export function ReportDetail() {
           {hasPageInfo && (
             <Card>
               <CardHeader>
-                <CardTitle>Page Info</CardTitle>
+                <CardTitle>{t('reportDetail.pageInfo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <InfoRow label="URL" value={report.metadata?.url} isLink />
-                <InfoRow label="Page Title" value={report.metadata?.title} />
-                <InfoRow label="Referrer" value={report.metadata?.referrer} isLink />
+                <InfoRow label={t('reportDetail.url')} value={report.metadata?.url} isLink />
+                <InfoRow label={t('reportDetail.pageTitle')} value={report.metadata?.title} />
+                <InfoRow label={t('reportDetail.referrer')} value={report.metadata?.referrer} isLink />
                 <InfoRow
-                  label="Load Time"
+                  label={t('reportDetail.loadTime')}
                   value={
                     report.metadata?.pageLoadTime ? `${report.metadata.pageLoadTime}ms` : undefined
                   }
                 />
-                <InfoRow label="Timezone" value={report.metadata?.timezone} />
+                <InfoRow label={t('reportDetail.timezone')} value={report.metadata?.timezone} />
               </CardContent>
             </Card>
           )}
@@ -941,26 +941,26 @@ export function ReportDetail() {
           {hasEnvironment && (
             <Card>
               <CardHeader>
-                <CardTitle>Environment</CardTitle>
+                <CardTitle>{t('reportDetail.environment')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <InfoRow
-                  label="Browser"
+                  label={t('reportDetail.browser')}
                   value={formatEnvironmentValue(
                     report.metadata?.browser?.name,
                     report.metadata?.browser?.version,
                   )}
                 />
                 <InfoRow
-                  label="OS"
+                  label={t('reportDetail.os')}
                   value={formatEnvironmentValue(
                     report.metadata?.device?.os,
                     report.metadata?.device?.osVersion,
                   )}
                 />
-                <InfoRow label="Device" value={report.metadata?.device?.type} />
+                <InfoRow label={t('reportDetail.device')} value={report.metadata?.device?.type} />
                 <InfoRow
-                  label="Viewport"
+                  label={t('reportDetail.viewport')}
                   value={
                     report.metadata?.viewport?.width && report.metadata?.viewport?.height
                       ? `${report.metadata.viewport.width}x${report.metadata.viewport.height}`
@@ -974,7 +974,7 @@ export function ReportDetail() {
           {report.source === 'manual' && !hasPageInfo && !hasEnvironment && (
             <Card>
               <CardHeader>
-                <CardTitle>Manual Report</CardTitle>
+                <CardTitle>{t('reportDetail.manualReport')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <p className="text-muted-foreground">
@@ -1095,7 +1095,7 @@ export function ReportDetail() {
           {report.forwardedTo && report.forwardedTo.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Forwarded To</CardTitle>
+                <CardTitle>{t('reportDetail.forwardedTo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {report.forwardedTo.map((ref, i) => (
@@ -1116,7 +1116,7 @@ export function ReportDetail() {
                           rel="noopener noreferrer"
                           className="text-primary hover:underline inline-flex items-center gap-1 text-sm"
                         >
-                          View
+                          {t('reportDetail.view')}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -1132,7 +1132,7 @@ export function ReportDetail() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Github className="h-4 w-4" />
-                  GitHub Sync
+                  {t('reportDetail.githubSync')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1140,7 +1140,7 @@ export function ReportDetail() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Issue #{report.githubIssueNumber}</span>
+                      <span className="text-sm">{t('reports.githubIssue', { number: report.githubIssueNumber })}</span>
                     </div>
                     <a
                       href={report.githubIssueUrl}

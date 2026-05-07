@@ -100,13 +100,13 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
     const newErrors: Partial<Record<keyof FormData, string>> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = t('validation.titleRequired');
     } else if (formData.title.trim().length < 4) {
-      newErrors.title = 'Title must be at least 4 characters';
+      newErrors.title = t('validation.titleTooShort');
     }
 
     if (formData.reporterEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.reporterEmail)) {
-      newErrors.reporterEmail = 'Invalid email address';
+      newErrors.reporterEmail = t('validation.invalidEmail');
     }
 
     setErrors(newErrors);
