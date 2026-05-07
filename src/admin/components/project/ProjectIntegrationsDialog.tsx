@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useIntegrations,
   useDeleteIntegration,
@@ -38,6 +39,7 @@ export function ProjectIntegrationsDialog({
   onOpenChange,
   integrationTypes = CE_INTEGRATION_TYPES,
 }: ProjectIntegrationsDialogProps) {
+  const { t } = useTranslation();
   const [activeType, setActiveType] = useState<IntegrationTypeDefinition | null>(null);
   const [editingIntegration, setEditingIntegration] = useState<Integration | undefined>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -95,8 +97,8 @@ export function ProjectIntegrationsDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className={`max-h-[85vh] ${integrationTypes.length > 1 ? 'max-w-3xl' : 'max-w-lg'}`}>
           <DialogHeader>
-            <DialogTitle>Integrations</DialogTitle>
-            <DialogDescription>Manage integrations for "{project.name}"</DialogDescription>
+            <DialogTitle>{t('projectIntegrations.title')}</DialogTitle>
+            <DialogDescription>{t('projectIntegrations.manageForProject', { name: project.name })}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="flex-1">
@@ -139,21 +141,21 @@ export function ProjectIntegrationsDialog({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Integration</AlertDialogTitle>
+            <AlertDialogTitle>{t('projectIntegrations.deleteIntegration')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this integration? This action cannot be undone.
+              {t('projectIntegrations.deleteIntegrationConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} variant="destructive">
               {deleteMutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Deleting...
+                  {t('common.deleting')}
                 </>
               ) : (
-                'Delete'
+                t('common.delete')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

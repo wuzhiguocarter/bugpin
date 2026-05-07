@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,18 +15,19 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Bug, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Spinner } from '../components/ui/spinner';
 
-const acceptInvitationSchema = z
-  .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
+const acceptInvitationSchema = () =>
+  z
+    .object({
+      name: z.string().min(2, i18next.t('acceptInvitation.nameMinLength')),
+      password: z.string().min(8, i18next.t('acceptInvitation.passwordMinLengthMsg')),
+      confirmPassword: z.string().min(1, i18next.t('acceptInvitation.confirmPasswordRequired')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: i18next.t('acceptInvitation.passwordsNotMatch'),
+      path: ['confirmPassword'],
+    });
 
-type AcceptInvitationFormData = z.infer<typeof acceptInvitationSchema>;
+type AcceptInvitationFormData = z.infer<ReturnType<typeof acceptInvitationSchema>>;
 
 interface InvitationData {
   email: string;
@@ -32,6 +35,7 @@ interface InvitationData {
 }
 
 export function AcceptInvitation() {
+  const { t } = useTranslation('acceptInvitation');
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
   const [searchParams] = useSearchParams();
@@ -49,7 +53,7 @@ export function AcceptInvitation() {
     setValue,
     formState: { errors },
   } = useForm<AcceptInvitationFormData>({
-    resolver: zodResolver(acceptInvitationSchema),
+    resolver: zodResolver(acceptInvitationSchema()),
     defaultValues: {
       name: '',
       password: '',
@@ -155,12 +159,12 @@ export function AcceptInvitation() {
             <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <AlertCircle className="w-7 h-7" />
             </div>
-            <CardTitle className="text-2xl mt-4">Invalid Invitation</CardTitle>
+            <CardTitle className="text-2xl mt-4">{t('acceptInvitation.invalidInvitation')}</CardTitle>
             <CardDescription>{validationError}</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Button variant="outline" onClick={() => navigate('/login')}>
-              Go to Login
+              {t('acceptInvitation.goToLogin')}
             </Button>
           </CardContent>
         </Card>
@@ -176,8 +180,8 @@ export function AcceptInvitation() {
           <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-bugpin-primary-100 text-bugpin-primary-700 dark:bg-bugpin-primary-900 dark:text-bugpin-primary-300">
             <Bug className="w-7 h-7" />
           </div>
-          <CardTitle className="text-2xl mt-4">Accept Invitation</CardTitle>
-          <CardDescription>Complete your account setup to join the team</CardDescription>
+          <CardTitle className="text-2xl mt-4">{t('acceptInvitation.acceptInvitation')}</CardTitle>
+          <CardDescription>{t('acceptInvitation.accountSetupDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
@@ -189,7 +193,7 @@ export function AcceptInvitation() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">{t('acceptInvitation.emailAddressLabel')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -198,17 +202,17 @@ export function AcceptInvitation() {
                 className="bg-muted"
               />
               <p className="text-xs text-muted-foreground">
-                This is the email address your invitation was sent to
+                {t('acceptInvitation.emailHint')}
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="name">
-                Your name <span className="text-destructive">*</span>
+                {t('acceptInvitation.yourNameLabel')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="name"
-                placeholder="John Doe"
+                placeholder={t('acceptInvitation.namePlaceholder')}
                 {...register('name')}
                 aria-invalid={!!errors.name}
               />
@@ -217,12 +221,12 @@ export function AcceptInvitation() {
 
             <div className="space-y-2">
               <Label htmlFor="password">
-                Password <span className="text-destructive">*</span>
+                {t('acceptInvitation.passwordLabel')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Min. 8 characters"
+                placeholder={t('acceptInvitation.passwordPlaceholder')}
                 {...register('password')}
                 aria-invalid={!!errors.password}
               />
@@ -233,12 +237,12 @@ export function AcceptInvitation() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
-                Confirm password <span className="text-destructive">*</span>
+                {t('acceptInvitation.confirmPasswordLabel')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Repeat your password"
+                placeholder={t('acceptInvitation.confirmPasswordPlaceholder')}
                 {...register('confirmPassword')}
                 aria-invalid={!!errors.confirmPassword}
               />
@@ -251,12 +255,12 @@ export function AcceptInvitation() {
               {isSubmitting ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Setting up account...
+                  {t('acceptInvitation.settingUpAccount')}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Accept Invitation
+                  {t('acceptInvitation.acceptInvitation')}
                 </>
               )}
             </Button>

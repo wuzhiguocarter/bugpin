@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '../../api/client';
@@ -22,62 +24,18 @@ import { Eye, RotateCcw, Save, Send } from 'lucide-react';
 import { Spinner } from '../../components/ui/spinner';
 import type { AppSettings, EmailTemplateType, EmailTemplate } from '@shared/types';
 
-const TEMPLATE_TYPES: { value: EmailTemplateType; label: string; description: string }[] = [
-  {
-    value: 'newReport',
-    label: 'New Report',
-    description: 'Sent when a new bug report is created',
-  },
-  {
-    value: 'statusChange',
-    label: 'Status Change',
-    description: 'Sent when a report status changes',
-  },
-  {
-    value: 'priorityChange',
-    label: 'Priority Change',
-    description: 'Sent when a report priority changes',
-  },
-  {
-    value: 'assignment',
-    label: 'Assignment',
-    description: 'Sent when a report is assigned to someone',
-  },
-  {
-    value: 'invitation',
-    label: 'Invitation',
-    description: 'Sent when inviting a new user',
-  },
-  {
-    value: 'reportDeleted',
-    label: 'Report Deleted',
-    description: 'Sent when a report is deleted',
-  },
-  {
-    value: 'testEmail',
-    label: 'Test Email',
-    description: 'Sent when testing SMTP configuration',
-  },
-  {
-    value: 'reporterConfirmation',
-    label: 'Reporter Confirmation',
-    description: 'Sent to the reporter when a bug report is submitted',
-  },
-  {
-    value: 'reporterStatusChange',
-    label: 'Reporter Status Change',
-    description: 'Sent to the reporter when report status changes',
-  },
-  {
-    value: 'reporterPriorityChange',
-    label: 'Reporter Priority Change',
-    description: 'Sent to the reporter when report priority changes',
-  },
-  {
-    value: 'reporterMessage',
-    label: 'Reporter Message',
-    description: 'Sent to the reporter when an admin sends a direct message',
-  },
+const getTemplateTypes = (): { value: EmailTemplateType; label: string; description: string }[] => [
+  { value: 'newReport', label: i18next.t('emailTemplates.newReport'), description: i18next.t('emailTemplates.newReportDescription') },
+  { value: 'statusChange', label: i18next.t('emailTemplates.statusChange'), description: i18next.t('emailTemplates.statusChangeDescription') },
+  { value: 'priorityChange', label: i18next.t('emailTemplates.priorityChange'), description: i18next.t('emailTemplates.priorityChangeDescription') },
+  { value: 'assignment', label: i18next.t('emailTemplates.assignment'), description: i18next.t('emailTemplates.assignmentDescription') },
+  { value: 'invitation', label: i18next.t('emailTemplates.invitation'), description: i18next.t('emailTemplates.invitationDescription') },
+  { value: 'reportDeleted', label: i18next.t('emailTemplates.reportDeleted'), description: i18next.t('emailTemplates.reportDeletedDescription') },
+  { value: 'testEmail', label: i18next.t('emailTemplates.testEmailLabel'), description: i18next.t('emailTemplates.testEmailDescription') },
+  { value: 'reporterConfirmation', label: i18next.t('emailTemplates.reporterConfirmation'), description: i18next.t('emailTemplates.reporterConfirmationDescription') },
+  { value: 'reporterStatusChange', label: i18next.t('emailTemplates.reporterStatusChange'), description: i18next.t('emailTemplates.reporterStatusChangeDescription') },
+  { value: 'reporterPriorityChange', label: i18next.t('emailTemplates.reporterPriorityChange'), description: i18next.t('emailTemplates.reporterPriorityChangeDescription') },
+  { value: 'reporterMessage', label: i18next.t('emailTemplates.reporterMessage'), description: i18next.t('emailTemplates.reporterMessageDescription') },
 ];
 
 const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
@@ -191,6 +149,7 @@ const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
 };
 
 export function EmailTemplatesSettings() {
+  const { t } = useTranslation('emailTemplates');
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<EmailTemplateType>('newReport');
@@ -258,11 +217,11 @@ export function EmailTemplatesSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Template saved successfully');
+      toast.success(t('emailTemplates.templateSaved'));
       setHasChanges(false);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to save template');
+      toast.error(err.response?.data?.message || t('emailTemplates.saveFailed'));
     },
   });
 
@@ -281,7 +240,7 @@ export function EmailTemplatesSettings() {
       setShowPreview(true);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to generate preview');
+      toast.error(err.response?.data?.message || t('emailTemplates.previewFailed'));
     },
   });
 
@@ -289,7 +248,7 @@ export function EmailTemplatesSettings() {
   const sendTestMutation = useMutation({
     mutationFn: async () => {
       if (!user?.email) {
-        throw new Error('User email not found');
+        throw new Error(t('smtp.userEmailNotFound'));
       }
       const response = await api.post('/settings/email-templates/send-test', {
         type: selectedType,
@@ -300,10 +259,10 @@ export function EmailTemplatesSettings() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success(`Test email sent to ${user?.email}`);
+      toast.success(t('emailTemplates.testEmailSent', { email: user?.email }));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to send test email');
+      toast.error(err.response?.data?.message || t('emailTemplates.testEmailFailed'));
     },
   });
 
@@ -316,9 +275,9 @@ export function EmailTemplatesSettings() {
       setHasChanges(true);
       setShowPreview(false);
       setPreviewData(null);
-      toast.success('Template reset to default');
+      toast.success(t('emailTemplates.templateReset'));
     } catch {
-      toast.error('Failed to fetch default template');
+      toast.error(t('emailTemplates.templateResetFailed'));
     }
   };
 
@@ -348,27 +307,28 @@ export function EmailTemplatesSettings() {
     return (
       <UpgradePrompt
         feature="custom-templates"
-        title="Email Templates"
-        description="Customize the email notification templates sent to users. Personalize subject lines, content, and styling to match your brand."
+        title={t('emailTemplates.emailTemplates')}
+        description={t('emailTemplates.upgradeDescription')}
       />
     );
   }
 
-  const selectedTemplateInfo = TEMPLATE_TYPES.find((t) => t.value === selectedType);
+  const templateTypes = getTemplateTypes();
+  const selectedTemplateInfo = templateTypes.find((tpl) => tpl.value === selectedType);
   const availableVariables = TEMPLATE_VARIABLES[selectedType];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Email Templates</CardTitle>
+        <CardTitle>{t('emailTemplates.emailTemplatesTitle')}</CardTitle>
         <CardDescription>
-          Customize the email templates sent to users for notifications
+          {t('emailTemplates.emailTemplatesTitleDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Template Selector */}
         <div className="flex flex-wrap gap-2">
-          {TEMPLATE_TYPES.map((template) => (
+          {templateTypes.map((template) => (
             <Button
               key={template.value}
               variant={selectedType === template.value ? 'default' : 'outline'}
@@ -386,15 +346,15 @@ export function EmailTemplatesSettings() {
 
         {/* Subject Input */}
         <div className="space-y-2">
-          <Label htmlFor="subject">Subject Line</Label>
+          <Label htmlFor="subject">{t('emailTemplates.subjectLine')}</Label>
           <Input
             id="subject"
             value={subject}
             onChange={(e) => handleSubjectChange(e.target.value)}
-            placeholder="Email subject..."
+            placeholder={t('emailTemplates.subjectPlaceholder')}
           />
           <p className="text-xs text-muted-foreground">
-            You can use variables like {`{{app.name}}`} in the subject line
+            {t('emailTemplates.subjectVariableHint', { var: '{{app.name}}' })}
           </p>
         </div>
 
@@ -403,19 +363,19 @@ export function EmailTemplatesSettings() {
 
         {/* Template Editor */}
         <div className="space-y-2">
-          <Label>Email Body</Label>
+          <Label>{t('emailTemplates.emailBody')}</Label>
           <TemplateEditor
             value={html}
             onChange={handleHtmlChange}
             availableVariables={availableVariables}
-            placeholder="Enter your email template HTML..."
+            placeholder={t('emailTemplates.htmlContentPlaceholder')}
           />
         </div>
 
         {/* Preview Section */}
         {showPreview && previewData && (
           <div className="space-y-2">
-            <Label>Preview (with sample data)</Label>
+            <Label>{t('emailTemplates.previewWithSampleData')}</Label>
             <TemplatePreview subject={previewData.subject} html={previewData.html} />
           </div>
         )}
@@ -436,12 +396,12 @@ export function EmailTemplatesSettings() {
             {previewMutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Loading...
+                {t('emailTemplates.loadingDot')}
               </>
             ) : (
               <>
                 <Eye className="h-4 w-4 mr-2" />
-                {showPreview ? 'Hide Preview' : 'Preview'}
+                {showPreview ? t('emailTemplates.hidePreview') : t('emailTemplates.previewBtn')}
               </>
             )}
           </Button>
@@ -450,24 +410,24 @@ export function EmailTemplatesSettings() {
             variant="outline"
             onClick={() => sendTestMutation.mutate()}
             disabled={sendTestMutation.isPending || !subject || !html || !settings?.smtpEnabled}
-            title={!settings?.smtpEnabled ? 'SMTP must be configured first' : undefined}
+            title={!settings?.smtpEnabled ? t('emailTemplates.smtpFirst') : undefined}
           >
             {sendTestMutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Sending...
+                {t('emailTemplates.sendingDot')}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                Send Test Email
+                {t('emailTemplates.sendTestEmailBtn')}
               </>
             )}
           </Button>
 
           <Button variant="outline" onClick={handleReset}>
             <RotateCcw className="h-4 w-4 mr-2" />
-            Reset to Default
+            {t('branding.resetToDefault')}
           </Button>
 
           <Button
@@ -477,12 +437,12 @@ export function EmailTemplatesSettings() {
             {saveMutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('emailTemplates.savingDot')}
               </>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Save Template
+                {t('emailTemplates.saveTemplate')}
               </>
             )}
           </Button>
@@ -490,7 +450,7 @@ export function EmailTemplatesSettings() {
 
         {user?.email && (
           <p className="text-xs text-muted-foreground">
-            Test email will be sent to: <strong>{user.email}</strong>
+            {t('emailTemplates.testEmailWillBeSent')} <strong>{user.email}</strong>
           </p>
         )}
       </CardContent>

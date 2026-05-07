@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '../../api/client';
@@ -22,6 +23,7 @@ interface ScreenshotFormData {
 }
 
 export function ScreenshotSettings() {
+  const { t } = useTranslation('screenshotSettings');
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ScreenshotFormData>({
     maxScreenshotSizeMb: 5,
@@ -56,10 +58,10 @@ export function ScreenshotSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Screenshot settings saved successfully');
+      toast.success(t('screenshotSettings.savedSuccessfully'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to save settings');
+      toast.error(err.response?.data?.message || t('screenshotSettings.saveFailed'));
     },
   });
 
@@ -88,8 +90,8 @@ export function ScreenshotSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Screenshot Settings</CardTitle>
-        <CardDescription>Configure screenshot capture settings</CardDescription>
+        <CardTitle>{t('globalSettings.screenshotSettings')}</CardTitle>
+        <CardDescription>{t('globalSettings.screenshotSettingsDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -103,10 +105,10 @@ export function ScreenshotSettings() {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('system.saveChanges')
             )}
           </Button>
         </CardContent>

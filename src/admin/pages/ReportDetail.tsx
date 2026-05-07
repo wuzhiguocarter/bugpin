@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '../api/client';
@@ -58,6 +59,7 @@ import type { AppSettings, Project, Report, ReportSource, User } from '@shared/t
 const UNASSIGNED_VALUE = '__unassigned__';
 
 export function ReportDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -138,10 +140,10 @@ export function ReportDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['report', id] });
-      toast.success('Sync retry initiated');
+      toast.success(t('reportDetail.syncRetryInitiated'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to retry sync');
+      toast.error(err.response?.data?.message || t('reportDetail.failedRetrySync'));
     },
   });
 
@@ -156,10 +158,10 @@ export function ReportDetail() {
       queryClient.invalidateQueries({ queryKey: ['recent-reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       setIsEditing(false);
-      toast.success('Report updated successfully');
+      toast.success(t('reportDetail.reportUpdated'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to update report');
+      toast.error(err.response?.data?.message || t('reportDetail.failedUpdate'));
     },
   });
 
@@ -171,11 +173,11 @@ export function ReportDetail() {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['recent-reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      toast.success('Report deleted successfully');
+      toast.success(t('reportDetail.reportDeleted'));
       navigate('/reports');
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to delete report');
+      toast.error(err.response?.data?.message || t('reportDetail.failedDelete'));
     },
   });
 
@@ -190,9 +192,9 @@ export function ReportDetail() {
   if (error || !data?.report) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Report not found</p>
+        <p className="text-muted-foreground">{t('reportDetail.reportNotFound')}</p>
         <Button variant="outline" onClick={() => navigate('/reports')} className="mt-4">
-          Back to Reports
+          {t('reportDetail.backToReports')}
         </Button>
       </div>
     );
@@ -285,7 +287,7 @@ export function ReportDetail() {
         reportId: id,
         integrationId,
       });
-      toast.success(`Report forwarded to ${integrationName}`);
+      toast.success(t('reportDetail.reportForwarded', { name: integrationName }));
       queryClient.invalidateQueries({ queryKey: ['report', id] });
     } catch (error) {
       console.error('Failed to forward report:', error);
@@ -306,7 +308,7 @@ export function ReportDetail() {
             className="mb-2 -ml-2 text-muted-foreground"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Reports
+            {t('reportDetail.backToReports')}
           </Button>
           <h1 className="text-2xl font-bold">{report.title}</h1>
         </div>
@@ -315,10 +317,10 @@ export function ReportDetail() {
             {isEditing ? (
               <>
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save'}
+                  {updateMutation.isPending ? t('common.saving') : t('common.save')}
                 </Button>
               </>
             ) : (
@@ -334,7 +336,7 @@ export function ReportDetail() {
                     setIsEditing(true);
                   }}
                 >
-                  Edit
+                  {t('common.edit')}
                 </Button>
                 {isAdmin && activeIntegrations.length > 0 && (
                   <DropdownMenu>
@@ -372,7 +374,7 @@ export function ReportDetail() {
                     onClick={() => setShowDeleteDialog(true)}
                     disabled={deleteMutation.isPending}
                   >
-                    Delete
+                    {t('common.delete')}
                   </Button>
                 )}
               </>
@@ -466,11 +468,11 @@ export function ReportDetail() {
           {/* Description */}
           <Card>
             <CardHeader>
-              <CardTitle>Description</CardTitle>
+              <CardTitle>{t('reportDetail.description')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-muted-foreground">
-                {report.description || 'No description provided'}
+                {report.description || t('common.noDescription')}
               </p>
             </CardContent>
           </Card>
@@ -771,11 +773,11 @@ export function ReportDetail() {
           {/* Status & Priority */}
           <Card>
             <CardHeader>
-              <CardTitle>Details</CardTitle>
+              <CardTitle>{t('reportDetail.details')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <Label className="text-muted-foreground block">Status</Label>
+                <Label className="text-muted-foreground block">{t('common.status')}</Label>
                 {isEditing ? (
                   <>
                     <Select
@@ -786,10 +788,10 @@ export function ReportDetail() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="open">{t('dashboard.open')}</SelectItem>
+                        <SelectItem value="in_progress">{t('dashboard.inProgress')}</SelectItem>
+                        <SelectItem value="resolved">{t('dashboard.resolved')}</SelectItem>
+                        <SelectItem value="closed">{t('dashboard.closed')}</SelectItem>
                       </SelectContent>
                     </Select>
                     {editData.status === 'resolved' && report.reporterEmail && messagingEnabled && (
@@ -804,13 +806,13 @@ export function ReportDetail() {
                         >
                           <MessageSquare className="h-3 w-3" />
                           {showResolveMessage
-                            ? 'Remove message for reporter'
-                            : 'Add a message for the reporter?'}
+                            ? t('reportDetail.removeMessage')
+                            : t('reportDetail.addMessage')}
                         </button>
                         {showResolveMessage && (
                           <>
                             <Textarea
-                              placeholder="Optional message to send to the reporter..."
+                              placeholder={t('reportDetail.optionalMessage')}
                               value={resolveMessage}
                               onChange={(e) => setResolveMessage(e.target.value)}
                               rows={3}
@@ -823,7 +825,7 @@ export function ReportDetail() {
                                   setResolveCcSender(checked === true)
                                 }
                               />
-                              Send me a copy
+                              {t('reportDetail.sendMeACopy')}
                             </label>
                           </>
                         )}
@@ -837,7 +839,7 @@ export function ReportDetail() {
                 )}
               </div>
               <div className="space-y-1">
-                <Label className="text-muted-foreground block">Priority</Label>
+                <Label className="text-muted-foreground block">{t('common.priority')}</Label>
                 {isEditing ? (
                   <Select
                     value={editData.priority}
@@ -847,11 +849,11 @@ export function ReportDetail() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lowest">Lowest</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="highest">Highest</SelectItem>
+                      <SelectItem value="lowest">{t('reports.priorityLowest')}</SelectItem>
+                      <SelectItem value="low">{t('reports.priorityLow')}</SelectItem>
+                      <SelectItem value="medium">{t('reports.priorityMedium')}</SelectItem>
+                      <SelectItem value="high">{t('reports.priorityHigh')}</SelectItem>
+                      <SelectItem value="highest">{t('reports.priorityHighest')}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -861,7 +863,7 @@ export function ReportDetail() {
                 )}
               </div>
               <div className="space-y-1">
-                <Label className="text-muted-foreground block">Assignee</Label>
+                <Label className="text-muted-foreground block">{t('reports.assigneeLabel')}</Label>
                 {isEditing ? (
                   <Select
                     value={editData.assignedTo}
@@ -871,7 +873,7 @@ export function ReportDetail() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
+                      <SelectItem value={UNASSIGNED_VALUE}>{t('common.unassigned')}</SelectItem>
                       {assignableUsers.map((assignee) => (
                         <SelectItem key={assignee.id} value={assignee.id}>
                           <AssigneeDisplay user={assignee} size="sm" />
@@ -885,24 +887,24 @@ export function ReportDetail() {
               </div>
               <Separator />
               <div className="space-y-1">
-                <Label className="text-muted-foreground">Source</Label>
+                <Label className="text-muted-foreground">{t('reportDetail.source')}</Label>
                 <div>
                   <SourceBadge source={report.source} />
                 </div>
               </div>
               {manualChannel && (
                 <div className="space-y-1">
-                  <Label className="text-muted-foreground">Channel</Label>
+                  <Label className="text-muted-foreground">{t('reportDetail.channel')}</Label>
                   <p className="text-sm capitalize">{manualChannel}</p>
                 </div>
               )}
               <div className="space-y-1">
-                <Label className="text-muted-foreground">Created</Label>
+                <Label className="text-muted-foreground">{t('reportDetail.created')}</Label>
                 <p className="text-sm">{formatDateTime(report.createdAt)}</p>
               </div>
               {(report.reporterEmail || report.reporterName) && (
                 <div className="space-y-1">
-                  <Label className="text-muted-foreground">Reporter</Label>
+                  <Label className="text-muted-foreground">{t('reportDetail.reporter')}</Label>
                   {report.reporterName && (
                     <p className="text-sm">{report.reporterName}</p>
                   )}
@@ -918,19 +920,19 @@ export function ReportDetail() {
           {hasPageInfo && (
             <Card>
               <CardHeader>
-                <CardTitle>Page Info</CardTitle>
+                <CardTitle>{t('reportDetail.pageInfo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <InfoRow label="URL" value={report.metadata?.url} isLink />
-                <InfoRow label="Page Title" value={report.metadata?.title} />
-                <InfoRow label="Referrer" value={report.metadata?.referrer} isLink />
+                <InfoRow label={t('reportDetail.url')} value={report.metadata?.url} isLink />
+                <InfoRow label={t('reportDetail.pageTitle')} value={report.metadata?.title} />
+                <InfoRow label={t('reportDetail.referrer')} value={report.metadata?.referrer} isLink />
                 <InfoRow
-                  label="Load Time"
+                  label={t('reportDetail.loadTime')}
                   value={
                     report.metadata?.pageLoadTime ? `${report.metadata.pageLoadTime}ms` : undefined
                   }
                 />
-                <InfoRow label="Timezone" value={report.metadata?.timezone} />
+                <InfoRow label={t('reportDetail.timezone')} value={report.metadata?.timezone} />
               </CardContent>
             </Card>
           )}
@@ -939,26 +941,26 @@ export function ReportDetail() {
           {hasEnvironment && (
             <Card>
               <CardHeader>
-                <CardTitle>Environment</CardTitle>
+                <CardTitle>{t('reportDetail.environment')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <InfoRow
-                  label="Browser"
+                  label={t('reportDetail.browser')}
                   value={formatEnvironmentValue(
                     report.metadata?.browser?.name,
                     report.metadata?.browser?.version,
                   )}
                 />
                 <InfoRow
-                  label="OS"
+                  label={t('reportDetail.os')}
                   value={formatEnvironmentValue(
                     report.metadata?.device?.os,
                     report.metadata?.device?.osVersion,
                   )}
                 />
-                <InfoRow label="Device" value={report.metadata?.device?.type} />
+                <InfoRow label={t('reportDetail.device')} value={report.metadata?.device?.type} />
                 <InfoRow
-                  label="Viewport"
+                  label={t('reportDetail.viewport')}
                   value={
                     report.metadata?.viewport?.width && report.metadata?.viewport?.height
                       ? `${report.metadata.viewport.width}x${report.metadata.viewport.height}`
@@ -972,7 +974,7 @@ export function ReportDetail() {
           {report.source === 'manual' && !hasPageInfo && !hasEnvironment && (
             <Card>
               <CardHeader>
-                <CardTitle>Manual Report</CardTitle>
+                <CardTitle>{t('reportDetail.manualReport')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <p className="text-muted-foreground">
@@ -1003,7 +1005,7 @@ export function ReportDetail() {
                   <>
                     <div className="space-y-2">
                       <Textarea
-                        placeholder="Write a message to the reporter..."
+                        placeholder="t('reportDetail.writeMessage')"
                         value={composeMessage}
                         onChange={(e) => setComposeMessage(e.target.value)}
                         rows={3}
@@ -1018,7 +1020,7 @@ export function ReportDetail() {
                             }
                             disabled={isSending}
                           />
-                          Send me a copy
+                          t('reportDetail.sendMeACopy')
                         </label>
                         <Button
                           size="sm"
@@ -1040,12 +1042,12 @@ export function ReportDetail() {
                           {isSending ? (
                             <>
                               <Spinner size="sm" className="mr-2" />
-                              Sending...
+                              t('reportDetail.sending')
                             </>
                           ) : (
                             <>
                               <Send className="h-4 w-4 mr-2" />
-                              Send Message
+                              t('reportDetail.sendMessage')
                             </>
                           )}
                         </Button>
@@ -1063,7 +1065,7 @@ export function ReportDetail() {
                   </div>
                 ) : reporterMessages.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No messages sent yet. Send a message to communicate with the reporter.
+                    {t('reportDetail.noMessages')}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -1093,7 +1095,7 @@ export function ReportDetail() {
           {report.forwardedTo && report.forwardedTo.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Forwarded To</CardTitle>
+                <CardTitle>{t('reportDetail.forwardedTo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {report.forwardedTo.map((ref, i) => (
@@ -1114,7 +1116,7 @@ export function ReportDetail() {
                           rel="noopener noreferrer"
                           className="text-primary hover:underline inline-flex items-center gap-1 text-sm"
                         >
-                          View
+                          {t('reportDetail.view')}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -1130,7 +1132,7 @@ export function ReportDetail() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Github className="h-4 w-4" />
-                  GitHub Sync
+                  {t('reportDetail.githubSync')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1138,7 +1140,7 @@ export function ReportDetail() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Issue #{report.githubIssueNumber}</span>
+                      <span className="text-sm">{t('reports.githubIssue', { number: report.githubIssueNumber })}</span>
                     </div>
                     <a
                       href={report.githubIssueUrl}
@@ -1154,14 +1156,14 @@ export function ReportDetail() {
                 {report.githubSyncStatus === 'pending' && (
                   <div className="flex items-center gap-2 text-amber-600">
                     <Spinner size="sm" />
-                    <span className="text-sm">Sync pending...</span>
+                    <span className="text-sm">{t('reportDetail.syncPending')}</span>
                   </div>
                 )}
                 {report.githubSyncStatus === 'error' && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <span className="text-sm">Sync failed</span>
+                      <span className="text-sm">{t('reportDetail.syncFailed')}</span>
                     </div>
                     {report.githubSyncError && (
                       <p className="text-xs text-muted-foreground bg-muted p-2 rounded">
@@ -1181,7 +1183,7 @@ export function ReportDetail() {
                         ) : (
                           <RefreshCw className="h-4 w-4 mr-2" />
                         )}
-                        Retry Sync
+                        {t('reportDetail.retrySync')}
                       </Button>
                     )}
                   </div>
@@ -1201,13 +1203,13 @@ export function ReportDetail() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Report</AlertDialogTitle>
+            <AlertDialogTitle>{t('reportDetail.deleteReport')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{report.title}"? This action cannot be undone.
+              {t('reportDetail.deleteConfirm', { title: report.title })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={() => deleteMutation.mutate()}>
               Delete
             </AlertDialogAction>
@@ -1242,10 +1244,11 @@ function InfoRow({ label, value, isLink }: { label: string; value?: string; isLi
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const labels: Record<string, string> = {
-    open: 'Open',
-    in_progress: 'In Progress',
-    resolved: 'Resolved',
+    open: t('dashboard.open'),
+    in_progress: t('dashboard.inProgress'),
+    resolved: t('dashboard.resolved'),
     closed: 'Closed',
   };
 
@@ -1288,8 +1291,9 @@ function AssigneeDisplay({
   showEmail?: boolean;
   size?: 'sm' | 'md';
 }) {
+  const { t } = useTranslation();
   if (!user) {
-    return <p className="text-sm text-muted-foreground">Unassigned</p>;
+    return <p className="text-sm text-muted-foreground">{t('common.unassigned')}</p>;
   }
 
   const fallback = user.name

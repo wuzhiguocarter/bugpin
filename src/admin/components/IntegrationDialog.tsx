@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -76,6 +77,7 @@ export function IntegrationDialog({
   integration,
   projectId,
 }: IntegrationDialogProps) {
+  const { t } = useTranslation('integration');
   const isEditing = !!integration;
   const createMutation = useCreateIntegration();
   const updateMutation = useUpdateIntegration();
@@ -195,7 +197,7 @@ export function IntegrationDialog({
 
   const handleFetchRepos = async () => {
     if (!watchedToken?.trim()) {
-      toast.error('Please enter an access token first');
+      toast.error(t('integration.pleaseEnterToken'));
       return;
     }
 
@@ -240,7 +242,7 @@ export function IntegrationDialog({
         setAvailableLabels(result);
       } catch {
         setLabelsError(true);
-        toast.error('Unable to load labels. Token needs Metadata: Read permission.');
+        toast.error(t('integration.unableToLoadLabels'));
       }
     }
     if (!enabled) {
@@ -262,7 +264,7 @@ export function IntegrationDialog({
         setAvailableAssignees(result);
       } catch {
         setAssigneesError(true);
-        toast.error('Unable to load assignees. Token needs Metadata: Read permission.');
+        toast.error(t('integration.unableToLoadAssignees'));
       }
     }
     if (!enabled) {
@@ -335,7 +337,7 @@ export function IntegrationDialog({
       // Toast is handled by the useTestIntegration hook
       await testMutation.mutateAsync(integration.id);
     } else {
-      toast.error('Save the integration first to test the connection');
+      toast.error(t('integration.saveFirstToTest'));
     }
   };
 
@@ -403,20 +405,20 @@ export function IntegrationDialog({
         <DialogContent className="sm:max-w-3xl max-h-[85vh]">
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
             <DialogHeader>
-              <DialogTitle>{isEditing ? 'Edit Integration' : 'Add Integration'}</DialogTitle>
+              <DialogTitle>{isEditing ? t('integration.editIntegrationDialog') : t('integration.addIntegrationDialog')}</DialogTitle>
               <DialogDescription>
-                {isEditing ? 'Update integration settings' : 'Create a new external integration'}
+                {isEditing ? t('integration.updateSettings') : t('integration.createIntegration')}
               </DialogDescription>
             </DialogHeader>
 
             <DialogBody className="space-y-3 flex-1">
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  Integration Name <span className="text-destructive">*</span>
+                  {t('integration.integrationName')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
-                  placeholder="e.g., Main Repository"
+                  placeholder={t('integration.namePlaceholderRepo')}
                   {...register('name')}
                   aria-invalid={!!errors.name}
                 />
@@ -425,7 +427,7 @@ export function IntegrationDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="token">
-                  Personal Access Token {!isEditing && <span className="text-destructive">*</span>}
+                  {t('integration.personalAccessToken')} {!isEditing && <span className="text-destructive">*</span>}
                 </Label>
 
                 {isEditing && !showTokenInput ? (
@@ -433,11 +435,11 @@ export function IntegrationDialog({
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-md border">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">Token saved</span>
+                      <span className="text-sm">{t('integration.tokenSavedDot')}</span>
                       <span className="text-xs text-muted-foreground">••••••••••••••••</span>
                     </div>
                     <Button type="button" variant="outline" onClick={() => setShowTokenInput(true)}>
-                      Change
+                      {t('integration.changeBtn')}
                     </Button>
                   </div>
                 ) : (
@@ -447,7 +449,7 @@ export function IntegrationDialog({
                       <Input
                         id="token"
                         type="password"
-                        placeholder="ghp_... or github_pat_..."
+                        placeholder={t('integration.tokenPlaceholder')}
                         {...register('accessToken')}
                         aria-invalid={!!errors.accessToken}
                         className="flex-1"
@@ -457,7 +459,7 @@ export function IntegrationDialog({
                         variant="outline"
                         onClick={handleFetchRepos}
                         disabled={fetchReposMutation.isPending || !watchedToken?.trim()}
-                        title="Load repositories"
+                        title={t('integration.loadRepositories')}
                       >
                         {fetchReposMutation.isPending ? (
                           <Spinner size="sm" />
@@ -474,7 +476,7 @@ export function IntegrationDialog({
                             setValue('accessToken', '');
                           }}
                         >
-                          Cancel
+                          {t('common.cancel')}
                         </Button>
                       )}
                     </div>
@@ -492,13 +494,12 @@ export function IntegrationDialog({
                     className="inline-flex items-center gap-1 text-primary hover:underline"
                   >
                     <HelpCircle className="h-3.5 w-3.5" />
-                    How to create a GitHub token
+                    {t('integration.howToCreate')}
                   </a>
                   {(!isEditing || showTokenInput) && (
                     <>
                       {' · '}
-                      After entering your token, click <RefreshCw className="h-3 w-3 inline" /> to
-                      load repositories.
+                      {t('integration.tokenAfterTip')}
                     </>
                   )}
                 </p>
@@ -506,12 +507,12 @@ export function IntegrationDialog({
 
               {/* Repository Selection */}
               <div className="space-y-2">
-                <Label>Repository</Label>
+                <Label>{t('integration.repository')}</Label>
 
                 {repositories.length > 0 ? (
                   <Select value={selectedRepo} onValueChange={handleRepoSelect}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a repository..." />
+                      <SelectValue placeholder={t('integration.chooseRepository')} />
                     </SelectTrigger>
                     <SelectContent>
                       {repositories.map((repo) => (
@@ -533,24 +534,23 @@ export function IntegrationDialog({
                     </span>
                     {isEditing && !showTokenInput && (
                       <span className="text-xs text-muted-foreground ml-auto">
-                        Click "Change" above to switch repository
+                        {t('integration.clickChangeAbove')}
                       </span>
                     )}
                     {isEditing && showTokenInput && (
                       <span className="text-xs text-muted-foreground ml-auto">
-                        Click <RefreshCw className="h-3 w-3 inline" /> to load repositories
+                        {t('integration.clickRefreshLoadRepos')}
                       </span>
                     )}
                   </div>
                 ) : (
                   <div className="px-3 py-2 bg-muted/50 rounded-md border border-dashed text-muted-foreground text-sm">
-                    Enter your token above and click <RefreshCw className="h-3 w-3 inline mx-1" />{' '}
-                    to load repositories
+                    {t('integration.enterTokenAbove')}
                   </div>
                 )}
 
                 {(errors.owner || errors.repo) && (
-                  <p className="text-sm text-destructive">Please select a repository</p>
+                  <p className="text-sm text-destructive">{t('integration.pleaseSelectRepository')}</p>
                 )}
 
                 {/* Hidden inputs for form validation */}
@@ -561,7 +561,7 @@ export function IntegrationDialog({
               {/* Labels Toggle */}
               <div className="space-y-2 border rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="enable-labels">Add labels to issues</Label>
+                  <Label htmlFor="enable-labels">{t('integration.addLabelsToIssues')}</Label>
                   <Switch
                     id="enable-labels"
                     checked={enableLabels}
@@ -574,20 +574,20 @@ export function IntegrationDialog({
                   <div className="pt-2 border-t">
                     {labelsError ? (
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        Unable to load labels. Token needs <strong>Metadata: Read</strong> permission.{' '}
+                        {t('integration.unableLoadLabelsFull')}{' '}
                         <a
                           href="https://docs.bugpin.io/integrations/github"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline hover:no-underline"
                         >
-                          View setup guide
+                          {t('integration.viewSetupGuide')}
                         </a>
                       </p>
                     ) : fetchLabelsMutation.isPending ? (
                       <p className="text-sm text-muted-foreground flex items-center gap-2">
                         <Spinner size="xs" />
-                        Loading labels...
+                        {t('integration.loadingLabels')}
                       </p>
                     ) : availableLabels.length > 0 ? (
                       <div className="space-y-2">
@@ -628,7 +628,7 @@ export function IntegrationDialog({
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        No labels found in this repository
+                        {t('integration.noLabelsFound')}
                       </p>
                     )}
                   </div>
@@ -638,7 +638,7 @@ export function IntegrationDialog({
               {/* Assignees Toggle */}
               <div className="space-y-2 border rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="enable-assignees">Assign issues to users</Label>
+                  <Label htmlFor="enable-assignees">{t('integration.assignIssuesToUsers')}</Label>
                   <Switch
                     id="enable-assignees"
                     checked={enableAssignees}
@@ -651,20 +651,20 @@ export function IntegrationDialog({
                   <div className="pt-2 border-t">
                     {assigneesError ? (
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        Unable to load assignees. Token needs <strong>Metadata: Read</strong> permission.{' '}
+                        {t('integration.unableLoadAssigneesFull')}{' '}
                         <a
                           href="https://docs.bugpin.io/integrations/github"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline hover:no-underline"
                         >
-                          View setup guide
+                          {t('integration.viewSetupGuide')}
                         </a>
                       </p>
                     ) : fetchAssigneesMutation.isPending ? (
                       <p className="text-sm text-muted-foreground flex items-center gap-2">
                         <Spinner size="xs" />
-                        Loading assignees...
+                        {t('integration.loadingAssignees')}
                       </p>
                     ) : availableAssignees.length > 0 ? (
                       <div className="space-y-2">
@@ -700,13 +700,13 @@ export function IntegrationDialog({
                         </div>
                         {selectedAssignees.length > 0 && (
                           <p className="text-xs text-muted-foreground">
-                            Selected: {selectedAssignees.join(', ')}
+                            {t('integration.selectedColon')} {selectedAssignees.join(', ')}
                           </p>
                         )}
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        No assignees found in this repository
+                        {t('integration.noAssigneesFound')}
                       </p>
                     )}
                   </div>
@@ -716,7 +716,7 @@ export function IntegrationDialog({
               {/* File Transfer Mode Toggle */}
               <div className="space-y-2 border rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="enable-upload">Upload files to GitHub</Label>
+                  <Label htmlFor="enable-upload">{t('integration.uploadFilesToGitHub')}</Label>
                   <Switch
                     id="enable-upload"
                     checked={fileTransferMode === 'upload'}
@@ -727,13 +727,9 @@ export function IntegrationDialog({
                 </div>
                 {fileTransferMode === 'upload' && (
                   <p className="text-xs text-muted-foreground pt-2 border-t">
-                    Files under 10 MB uploaded to{' '}
-                    {watchedOwner && watchedRepo
-                      ? `${watchedOwner}/${watchedRepo}`
-                      : 'your repository'}
-                    . Requires{' '}
-                    <strong>Contents: Read and write</strong> permission (fine-grained) or{' '}
-                    <code className="px-1 py-0.5 bg-muted rounded">repo</code> scope (classic).
+                    {t('integration.filesUploadDescription', {
+                      repo: watchedOwner && watchedRepo ? `${watchedOwner}/${watchedRepo}` : t('integration.yourRepository'),
+                    })}
                   </p>
                 )}
               </div>
@@ -741,7 +737,7 @@ export function IntegrationDialog({
               {/* Automatic Sync Toggle */}
               <div className="space-y-2 border rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="enable-sync">Automatic sync</Label>
+                  <Label htmlFor="enable-sync">{t('integration.automaticSync')}</Label>
                   <Switch
                     id="enable-sync"
                     checked={syncMode === 'automatic'}
@@ -751,8 +747,7 @@ export function IntegrationDialog({
                 </div>
                 {syncMode === 'automatic' && (
                   <p className="text-xs text-muted-foreground pt-2 border-t">
-                    New reports synced automatically. GitHub issue changes (closed/reopened) update
-                    BugPin status.
+                    {t('integration.syncModeDescription')}
                   </p>
                 )}
               </div>
@@ -769,26 +764,26 @@ export function IntegrationDialog({
                   {testMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Testing...
+                      {t('integration.testingDot')}
                     </>
                   ) : (
-                    'Test Connection'
+                    t('integration.testConnectionBtn')
                   )}
                 </Button>
               )}
               <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    {isEditing ? 'Updating...' : 'Creating...'}
+                    {isEditing ? t('integration.updatingDot') : t('integration.creatingDot')}
                   </>
                 ) : isEditing ? (
-                  'Update'
+                  t('integration.updateBtn')
                 ) : (
-                  'Create'
+                  t('integration.createBtn')
                 )}
               </Button>
             </DialogFooter>
@@ -810,22 +805,20 @@ export function IntegrationDialog({
       <AlertDialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Application URL Required</AlertDialogTitle>
+            <AlertDialogTitle>{t('integration.applicationUrlRequired')}</AlertDialogTitle>
             <AlertDialogDescription>
-              To enable automatic sync, you need to configure your Application URL in system
-              settings. This URL is used to register a webhook with GitHub so BugPin can receive
-              notifications when issues are closed or reopened.
+              {t('integration.applicationUrlRequiredFull')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setShowConfigDialog(false);
                 window.location.href = '/admin/settings';
               }}
             >
-              Go to Settings
+              {t('integration.goToSettings')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

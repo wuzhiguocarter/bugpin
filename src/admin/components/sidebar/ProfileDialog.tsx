@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +34,7 @@ interface ProfileDialogProps {
 }
 
 export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
+  const { t } = useTranslation('profile');
   const { user } = useAuth();
 
   return (
@@ -41,8 +44,8 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Profile Settings</DialogTitle>
-          <DialogDescription>Manage your account, appearance, and password</DialogDescription>
+          <DialogTitle>{t('profile.profileSettings')}</DialogTitle>
+          <DialogDescription>{t('profile.profileSettingsDescription')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -64,6 +67,7 @@ interface User {
 }
 
 function ProfileSection({ user }: { user: User | null }) {
+  const { t } = useTranslation('profile');
   const { refreshUser } = useAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,12 +93,12 @@ function ProfileSection({ user }: { user: User | null }) {
     onSuccess: async () => {
       await refreshUser();
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Avatar updated successfully');
+      toast.success(t('profile.avatarUpdated'));
       setUploading(false);
       setIsDialogOpen(false);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to upload avatar');
+      toast.error(err.response?.data?.message || t('profile.avatarUploadFailed'));
       setUploading(false);
     },
   });
@@ -107,11 +111,11 @@ function ProfileSection({ user }: { user: User | null }) {
     onSuccess: async () => {
       await refreshUser();
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Avatar removed successfully');
+      toast.success(t('profile.avatarRemoved'));
       setIsDialogOpen(false);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to remove avatar');
+      toast.error(err.response?.data?.message || t('profile.avatarRemoveFailed'));
     },
   });
 
@@ -126,13 +130,13 @@ function ProfileSection({ user }: { user: User | null }) {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Only JPEG, PNG, WebP, and GIF images are allowed');
+      toast.error(t('profile.invalidImageType'));
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+      toast.error(t('profile.imageTooLarge'));
       return;
     }
 
@@ -181,7 +185,7 @@ function ProfileSection({ user }: { user: User | null }) {
       // Upload cropped image
       uploadMutation.mutate(croppedFile);
     } catch (error) {
-      toast.error('Failed to crop image');
+      toast.error(t('profile.cropFailed'));
       setUploading(false);
     }
   };
@@ -200,8 +204,8 @@ function ProfileSection({ user }: { user: User | null }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account information</CardDescription>
+          <CardTitle>{t('profile.profileCard')}</CardTitle>
+          <CardDescription>{t('profile.profileCardDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -224,7 +228,7 @@ function ProfileSection({ user }: { user: User | null }) {
               <p className="text-lg font-medium">{user?.name}</p>
               <p className="text-muted-foreground">{user?.email}</p>
               <Badge variant="secondary" className="mt-1 capitalize">
-                {user?.role}
+                {user?.role ? t(`users.${user.role}`, { defaultValue: user.role }) : ''}
               </Badge>
             </div>
           </div>
@@ -235,8 +239,8 @@ function ProfileSection({ user }: { user: User | null }) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Avatar</DialogTitle>
-            <DialogDescription>Upload a new avatar or remove your current one</DialogDescription>
+            <DialogTitle>{t('profile.editAvatar')}</DialogTitle>
+            <DialogDescription>{t('profile.editAvatarDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -273,12 +277,12 @@ function ProfileSection({ user }: { user: User | null }) {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('profile.uploading')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Avatar
+                    {t('profile.uploadNewAvatar')}
                   </>
                 )}
               </Button>
@@ -294,21 +298,21 @@ function ProfileSection({ user }: { user: User | null }) {
                   {deleteMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Removing...
+                      {t('profile.removing')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Avatar
+                      {t('profile.removeAvatar')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                Recommended: Square image, max 5MB
+                {t('profile.avatarHint')}
                 <br />
-                Supported formats: JPEG, PNG, WebP, GIF
+                {t('profile.avatarFormats')}
               </p>
             </div>
           </div>
@@ -319,8 +323,8 @@ function ProfileSection({ user }: { user: User | null }) {
       <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Crop Avatar</DialogTitle>
-            <DialogDescription>Adjust the crop area to create a square avatar</DialogDescription>
+            <DialogTitle>{t('profile.cropAvatar')}</DialogTitle>
+            <DialogDescription>{t('profile.cropAvatarDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -341,7 +345,7 @@ function ProfileSection({ user }: { user: User | null }) {
 
             {/* Zoom Slider */}
             <div className="space-y-2">
-              <Label>Zoom</Label>
+              <Label>{t('profile.zoom')}</Label>
               <input
                 type="range"
                 min={1}
@@ -356,7 +360,7 @@ function ProfileSection({ user }: { user: User | null }) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCropCancel} disabled={uploading}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="button" onClick={handleCropSave} disabled={uploading}>
               {uploading ? (
@@ -365,7 +369,7 @@ function ProfileSection({ user }: { user: User | null }) {
                   Uploading...
                 </>
               ) : (
-                'Save & Upload'
+                t('profile.saveAndUpload')
               )}
             </Button>
           </DialogFooter>
@@ -375,14 +379,16 @@ function ProfileSection({ user }: { user: User | null }) {
   );
 }
 
-const updateProfileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
-});
+const updateProfileSchema = () =>
+  z.object({
+    name: z.string().min(2, i18next.t('profile.nameMinLength')),
+    email: z.string().min(1, i18next.t('profile.emailRequired')).email(i18next.t('profile.invalidEmail')),
+  });
 
-type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
+type UpdateProfileFormData = z.infer<ReturnType<typeof updateProfileSchema>>;
 
 function UpdateProfileSection({ user }: { user: User | null }) {
+  const { t } = useTranslation('profile');
   const { refreshUser } = useAuth();
   const queryClient = useQueryClient();
   const [originalValues, setOriginalValues] = useState({
@@ -397,7 +403,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
     reset,
     formState: { errors },
   } = useForm<UpdateProfileFormData>({
-    resolver: zodResolver(updateProfileSchema),
+    resolver: zodResolver(updateProfileSchema()),
     defaultValues: {
       name: user?.name || '',
       email: user?.email || '',
@@ -427,10 +433,10 @@ function UpdateProfileSection({ user }: { user: User | null }) {
         reset({ name: updatedUser.name || '', email: updatedUser.email || '' });
         setOriginalValues({ name: updatedUser.name || '', email: updatedUser.email || '' });
       }
-      toast.success('Profile updated successfully');
+      toast.success(t('profile.profileUpdated'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      const errorMessage = err.response?.data?.message || 'Failed to update profile';
+      const errorMessage = err.response?.data?.message || t('profile.profileUpdateFailed');
       toast.error(errorMessage);
     },
   });
@@ -447,7 +453,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
     }
 
     if (Object.keys(updates).length === 0) {
-      toast.info('No changes to save');
+      toast.info(t('profile.noChanges'));
       return;
     }
 
@@ -459,14 +465,14 @@ function UpdateProfileSection({ user }: { user: User | null }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Update Profile</CardTitle>
-        <CardDescription>Change your name and email address</CardDescription>
+        <CardTitle>{t('profile.updateProfile')}</CardTitle>
+        <CardDescription>{t('profile.updateProfileDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="profile-name">
-              Name <span className="text-destructive">*</span>
+              {t('profile.name')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="profile-name"
@@ -479,7 +485,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
 
           <div className="space-y-2">
             <Label htmlFor="profile-email">
-              Email Address <span className="text-destructive">*</span>
+              {t('profile.emailAddress')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="profile-email"
@@ -488,17 +494,17 @@ function UpdateProfileSection({ user }: { user: User | null }) {
               aria-invalid={!!errors.email}
             />
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-            <p className="text-sm text-muted-foreground">Used for login and notifications</p>
+            <p className="text-sm text-muted-foreground">{t('profile.emailUsedFor')}</p>
           </div>
 
           <Button type="submit" disabled={mutation.isPending || !hasChanges}>
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Saving...
+                {t('common.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('profile.saveChanges')
             )}
           </Button>
         </CardContent>
@@ -507,27 +513,29 @@ function UpdateProfileSection({ user }: { user: User | null }) {
   );
 }
 
-const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your new password'),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+const changePasswordSchema = () =>
+  z
+    .object({
+      currentPassword: z.string().min(1, i18next.t('profile.currentPasswordRequired')),
+      newPassword: z.string().min(8, i18next.t('profile.passwordMinLength')),
+      confirmPassword: z.string().min(1, i18next.t('profile.confirmNewPasswordRequired')),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: i18next.t('profile.passwordsDoNotMatch'),
+      path: ['confirmPassword'],
+    });
 
-type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+type ChangePasswordFormData = z.infer<ReturnType<typeof changePasswordSchema>>;
 
 function ChangePasswordSection() {
+  const { t } = useTranslation('profile');
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(changePasswordSchema()),
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -542,10 +550,10 @@ function ChangePasswordSection() {
     },
     onSuccess: () => {
       reset();
-      toast.success('Password changed successfully');
+      toast.success(t('profile.passwordChanged'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      const errorMessage = err.response?.data?.message || 'Failed to change password';
+      const errorMessage = err.response?.data?.message || t('profile.passwordChangeFailed');
       toast.error(errorMessage);
     },
   });
@@ -560,14 +568,14 @@ function ChangePasswordSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Change Password</CardTitle>
-        <CardDescription>Update your password to keep your account secure</CardDescription>
+        <CardTitle>{t('profile.changePassword')}</CardTitle>
+        <CardDescription>{t('profile.changePasswordDescription')}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="current-password">
-              Current Password <span className="text-destructive">*</span>
+              {t('profile.currentPassword')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="current-password"
@@ -582,7 +590,7 @@ function ChangePasswordSection() {
 
           <div className="space-y-2">
             <Label htmlFor="new-password">
-              New Password <span className="text-destructive">*</span>
+              {t('profile.newPassword')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="new-password"
@@ -597,7 +605,7 @@ function ChangePasswordSection() {
 
           <div className="space-y-2">
             <Label htmlFor="confirm-password">
-              Confirm New Password <span className="text-destructive">*</span>
+              {t('profile.confirmNewPassword')} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="confirm-password"
@@ -614,10 +622,10 @@ function ChangePasswordSection() {
             {mutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Changing...
+                {t('profile.changing')}
               </>
             ) : (
-              'Change Password'
+              t('profile.changePasswordBtn')
             )}
           </Button>
         </CardContent>

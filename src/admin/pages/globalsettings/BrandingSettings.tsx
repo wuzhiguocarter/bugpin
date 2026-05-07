@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import Cropper from 'react-easy-crop';
@@ -42,6 +43,7 @@ const DEFAULT_ADMIN_COLORS: ThemeColors = {
 };
 
 export function BrandingSettings() {
+  const { t } = useTranslation('branding');
   const { data: featureStatus, isLoading } = useQuery({
     queryKey: ['license-features'],
     queryFn: licenseApi.getFeatures,
@@ -63,7 +65,7 @@ export function BrandingSettings() {
     return (
       <UpgradePrompt
         feature="custom-branding"
-        title="Custom Branding"
+        title={t('branding.customBranding')}
         description="Customize your BugPin instance with your own logo, icon, favicon, and brand colors. Make it truly yours."
       />
     );
@@ -80,6 +82,7 @@ export function BrandingSettings() {
 }
 
 function BrandColorSection() {
+  const { t } = useTranslation('branding');
   const queryClient = useQueryClient();
   // Track local edits separately - null means use config values
   const [localEdits, setLocalEdits] = useState<ThemeColors | null>(null);
@@ -94,10 +97,10 @@ function BrandColorSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
       setLocalEdits(null); // Clear local edits after save
-      toast.success('Brand colors updated');
+      toast.success(t('branding.brandColorsUpdated'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to update brand colors');
+      toast.error(err.response?.data?.message || t('branding.brandColorsUpdateFailed'));
     },
   });
 
@@ -133,9 +136,9 @@ function BrandColorSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">Brand Colors</CardTitle>
+        <CardTitle className="flex items-center gap-2">{t('branding.brandColorsTitle')}</CardTitle>
         <CardDescription>
-          Configure the primary colors for buttons and interactive elements in the admin portal.
+          {t('branding.brandColorsConfigure')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -149,7 +152,7 @@ function BrandColorSection() {
           <div className="flex gap-2 pt-4 border-t">
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending && <Spinner size="sm" className="mr-2" />}
-              Save Colors
+              {t('branding.saveColors')}
             </Button>
             <Button
               type="button"
@@ -158,7 +161,7 @@ function BrandColorSection() {
               disabled={mutation.isPending}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset to Default
+              {t('branding.resetToDefault')}
             </Button>
           </div>
         </CardContent>
@@ -168,6 +171,7 @@ function BrandColorSection() {
 }
 
 function IconSection() {
+  const { t } = useTranslation('branding');
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [currentMode, setCurrentMode] = useState<'light' | 'dark'>('light');
@@ -191,12 +195,12 @@ function IconSection() {
       brandingApi.uploadIcon(mode, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
-      toast.success('Icon uploaded successfully');
+      toast.success(t('branding.iconUploaded'));
       setUploading(false);
       setDialogOpen(null);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to upload icon');
+      toast.error(err.response?.data?.message || t('branding.iconUploadFailed'));
       setUploading(false);
     },
   });
@@ -205,11 +209,11 @@ function IconSection() {
     mutationFn: brandingApi.resetIcon,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
-      toast.success('Icon removed');
+      toast.success(t('branding.iconRemoved'));
       setDialogOpen(null);
     },
     onError: () => {
-      toast.error('Failed to remove icon');
+      toast.error(t('branding.iconRemoveFailed'));
     },
   });
 
@@ -229,13 +233,13 @@ function IconSection() {
     // Validate file type
     const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Allowed: PNG, JPEG, WebP');
+      toast.error(t('branding.invalidIconType'));
       return;
     }
 
     // Validate file size (1MB)
     if (file.size > 1024 * 1024) {
-      toast.error('File size must not exceed 1MB');
+      toast.error(t('branding.iconTooLarge'));
       return;
     }
 
@@ -280,7 +284,7 @@ function IconSection() {
       // Upload cropped image
       uploadMutation.mutate({ mode: currentMode, file: croppedFile });
     } catch {
-      toast.error('Failed to crop image');
+      toast.error(t('branding.cropFailed'));
       setUploading(false);
     }
   };
@@ -307,16 +311,16 @@ function IconSection() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Icon</CardTitle>
+          <CardTitle>{t('branding.iconCardTitle')}</CardTitle>
           <CardDescription>
-            Square icon for collapsed sidebar. PNG, JPEG, or WebP, max. 1MB. Resized to 256×256px.
+            {t('branding.iconCardDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
             {/* Light Mode Icon - light background */}
             <div className="space-y-3">
-              <Label>Light Mode</Label>
+              <Label>{t('branding.lightMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => openDialog('light')}
@@ -345,7 +349,7 @@ function IconSection() {
 
             {/* Dark Mode Icon - dark background */}
             <div className="space-y-3">
-              <Label>Dark Mode</Label>
+              <Label>{t('branding.darkMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => openDialog('dark')}
@@ -379,8 +383,8 @@ function IconSection() {
       <Dialog open={dialogOpen !== null} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {dialogOpen === 'light' ? 'Light' : 'Dark'} Mode Icon</DialogTitle>
-            <DialogDescription>Upload a new icon or remove the current one</DialogDescription>
+            <DialogTitle>{t('branding.editModeIconTitle', { mode: dialogOpen === 'light' ? t('branding.lightMode') : t('branding.darkMode') })}</DialogTitle>
+            <DialogDescription>{t('branding.editModeIconDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -431,12 +435,12 @@ function IconSection() {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('branding.uploadingDot')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Icon
+                    {t('branding.uploadNewIcon')}
                   </>
                 )}
               </Button>
@@ -452,21 +456,21 @@ function IconSection() {
                   {resetMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Removing...
+                      {t('branding.removingDot')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Icon
+                      {t('branding.removeIconBtn')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                Recommended: Square image, max 1MB
+                {t('branding.iconHint')}
                 <br />
-                Supported formats: PNG, JPEG, WebP
+                {t('branding.iconFormats')}
               </p>
             </div>
           </div>
@@ -477,8 +481,8 @@ function IconSection() {
       <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Crop Icon</DialogTitle>
-            <DialogDescription>Adjust the crop area to create a square icon</DialogDescription>
+            <DialogTitle>{t('branding.cropIcon')}</DialogTitle>
+            <DialogDescription>{t('branding.cropIconDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -499,7 +503,7 @@ function IconSection() {
 
             {/* Zoom Slider */}
             <div className="space-y-2">
-              <Label>Zoom</Label>
+              <Label>{t('branding.zoomLabel')}</Label>
               <input
                 type="range"
                 min={1}
@@ -514,16 +518,16 @@ function IconSection() {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCropCancel} disabled={uploading}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="button" onClick={handleCropSave} disabled={uploading}>
               {uploading ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Uploading...
+                  {t('branding.uploadingDot')}
                 </>
               ) : (
-                'Save & Upload'
+                t('branding.saveAndUpload')
               )}
             </Button>
           </DialogFooter>
@@ -534,6 +538,7 @@ function IconSection() {
 }
 
 function LogoSection() {
+  const { t } = useTranslation('branding');
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState<'light' | 'dark' | null>(null);
@@ -549,12 +554,12 @@ function LogoSection() {
       brandingApi.uploadLogo(mode, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
-      toast.success('Logo uploaded successfully');
+      toast.success(t('branding.logoUploaded'));
       setUploading(false);
       setDialogOpen(null);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to upload logo');
+      toast.error(err.response?.data?.message || t('branding.logoUploadFailed'));
       setUploading(false);
     },
   });
@@ -563,11 +568,11 @@ function LogoSection() {
     mutationFn: brandingApi.resetLogo,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
-      toast.success('Logo removed');
+      toast.success(t('branding.logoRemoved'));
       setDialogOpen(null);
     },
     onError: () => {
-      toast.error('Failed to remove logo');
+      toast.error(t('branding.logoRemoveFailed'));
     },
   });
 
@@ -583,13 +588,13 @@ function LogoSection() {
     // Validate file type
     const allowedTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Allowed: SVG, PNG, JPEG, WebP');
+      toast.error(t('branding.invalidLogoType'));
       return;
     }
 
     // Validate file size (2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('File size must not exceed 2MB');
+      toast.error(t('branding.logoTooLarge'));
       return;
     }
 
@@ -605,16 +610,16 @@ function LogoSection() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Logo</CardTitle>
+          <CardTitle>{t('branding.logoCardTitle')}</CardTitle>
           <CardDescription>
-            Main logo for sidebar and email templates. SVG, PNG, JPEG, or WebP, max. 2MB.
+            {t('branding.logoCardDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
             {/* Light Mode Logo - light background */}
             <div className="space-y-3">
-              <Label>Light Mode</Label>
+              <Label>{t('branding.lightMode')}</Label>
               <div
                 className="relative group cursor-pointer w-full h-20 mx-auto"
                 onClick={() => setDialogOpen('light')}
@@ -643,7 +648,7 @@ function LogoSection() {
 
             {/* Dark Mode Logo - dark background */}
             <div className="space-y-3">
-              <Label>Dark Mode</Label>
+              <Label>{t('branding.darkMode')}</Label>
               <div
                 className="relative group cursor-pointer w-full h-20 mx-auto"
                 onClick={() => setDialogOpen('dark')}
@@ -677,8 +682,8 @@ function LogoSection() {
       <Dialog open={dialogOpen !== null} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {dialogOpen === 'light' ? 'Light' : 'Dark'} Mode Logo</DialogTitle>
-            <DialogDescription>Upload a new logo or remove the current one</DialogDescription>
+            <DialogTitle>{t('branding.editModeLogoTitle', { mode: dialogOpen === 'light' ? t('branding.lightMode') : t('branding.darkMode') })}</DialogTitle>
+            <DialogDescription>{t('branding.editModeLogoDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -729,12 +734,12 @@ function LogoSection() {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('branding.uploadingDot')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Logo
+                    {t('branding.uploadNewLogo')}
                   </>
                 )}
               </Button>
@@ -750,21 +755,21 @@ function LogoSection() {
                   {resetMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Removing...
+                      {t('branding.removingDot')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Logo
+                      {t('branding.removeLogoBtn')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                Any aspect ratio allowed, max 2MB
+                {t('branding.logoHint')}
                 <br />
-                Supported formats: SVG, PNG, JPEG, WebP
+                {t('branding.logoFormats')}
               </p>
             </div>
           </div>
@@ -775,6 +780,7 @@ function LogoSection() {
 }
 
 function FaviconSection() {
+  const { t } = useTranslation('branding');
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState<'light' | 'dark' | null>(null);
@@ -790,12 +796,12 @@ function FaviconSection() {
       brandingApi.uploadFavicon(mode, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
-      toast.success('Favicon uploaded successfully');
+      toast.success(t('branding.faviconUploaded'));
       setUploading(false);
       setDialogOpen(null);
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to upload favicon');
+      toast.error(err.response?.data?.message || t('branding.faviconUploadFailed'));
       setUploading(false);
     },
   });
@@ -804,11 +810,11 @@ function FaviconSection() {
     mutationFn: brandingApi.resetFavicon,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['branding-config'] });
-      toast.success('Favicon reset to default');
+      toast.success(t('branding.faviconReset'));
       setDialogOpen(null);
     },
     onError: () => {
-      toast.error('Failed to reset favicon');
+      toast.error(t('branding.faviconResetFailed'));
     },
   });
 
@@ -824,13 +830,13 @@ function FaviconSection() {
     // Validate file type - PNG or JPEG for auto-generation
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Only PNG or JPEG files are allowed');
+      toast.error(t('branding.invalidIconTypeMessage'));
       return;
     }
 
     // Validate file size (1MB for source images)
     if (file.size > 1024 * 1024) {
-      toast.error('File size must not exceed 1MB');
+      toast.error(t('branding.fileTooLarge1MB'));
       return;
     }
 
@@ -852,17 +858,16 @@ function FaviconSection() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Favicon</CardTitle>
+          <CardTitle>{t('branding.faviconCardTitle')}</CardTitle>
           <CardDescription>
-            PNG or JPEG, min 512×512px, max. 1MB. Auto-generates all sizes for browsers, Apple Touch
-            Icon, and Android Chrome icons.
+            {t('branding.faviconCardDescription2')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
             {/* Light Mode Favicon */}
             <div className="space-y-3">
-              <Label>Light Mode</Label>
+              <Label>{t('branding.lightMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => setDialogOpen('light')}
@@ -883,7 +888,7 @@ function FaviconSection() {
 
             {/* Dark Mode Favicon */}
             <div className="space-y-3">
-              <Label>Dark Mode</Label>
+              <Label>{t('branding.darkMode')}</Label>
               <div
                 className="relative group cursor-pointer w-20 h-20"
                 onClick={() => setDialogOpen('dark')}
@@ -905,8 +910,8 @@ function FaviconSection() {
       <Dialog open={dialogOpen !== null} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit {dialogOpen === 'light' ? 'Light' : 'Dark'} Mode Favicon</DialogTitle>
-            <DialogDescription>Upload a new favicon or reset to default</DialogDescription>
+            <DialogTitle>{t('branding.editModeFaviconTitle', { mode: dialogOpen === 'light' ? t('branding.lightMode') : t('branding.darkMode') })}</DialogTitle>
+            <DialogDescription>{t('branding.editModeFaviconDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -947,12 +952,12 @@ function FaviconSection() {
                 {uploading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Uploading...
+                    {t('branding.uploadingDot')}
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload New Favicon
+                    {t('branding.uploadNewFavicon')}
                   </>
                 )}
               </Button>
@@ -968,19 +973,19 @@ function FaviconSection() {
                   {resetMutation.isPending ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Resetting...
+                      {t('branding.resettingDot')}
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Reset to Default
+                      {t('branding.resetToDefaultBtn')}
                     </>
                   )}
                 </Button>
               )}
 
               <p className="text-xs text-center text-muted-foreground">
-                PNG or JPEG, min 512×512px, max 1MB
+                {t('branding.faviconHint')}
               </p>
             </div>
           </div>

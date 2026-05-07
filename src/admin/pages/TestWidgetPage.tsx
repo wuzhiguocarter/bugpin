@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { Spinner } from '../components/ui/spinner';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -45,11 +47,11 @@ import {
 
 const STORAGE_KEY = 'bugpin_test_api_key';
 
-const STATS = [
-  { label: 'Total Revenue', value: '$45,231', change: '+12.5%', positive: true },
-  { label: 'Active Users', value: '2,847', change: '+8.3%', positive: true },
-  { label: 'Conversion Rate', value: '3.24%', change: '-2.1%', positive: false },
-  { label: 'Avg. Session', value: '4m 32s', change: '+5.7%', positive: true },
+const getStats = () => [
+  { label: i18next.t('testWidget.totalRevenue'), value: '$45,231', change: '+12.5%', positive: true },
+  { label: i18next.t('testWidget.activeUsers'), value: '2,847', change: '+8.3%', positive: true },
+  { label: i18next.t('testWidget.conversionRate'), value: '3.24%', change: '-2.1%', positive: false },
+  { label: i18next.t('testWidget.avgSession'), value: '4m 32s', change: '+5.7%', positive: true },
 ];
 
 const TRANSACTIONS = [
@@ -107,36 +109,36 @@ const CHART_BARS = [
   { height: 80, color: 'bg-yellow-500' },
 ];
 
-const CHART_LEGEND = [
-  { label: 'Jan - Mar', color: 'bg-blue-500' },
-  { label: 'Apr - Jun', color: 'bg-green-500' },
-  { label: 'Jul - Sep', color: 'bg-yellow-500' },
-  { label: 'Oct - Dec', color: 'bg-red-500' },
+const getChartLegend = () => [
+  { label: i18next.t('testWidget.janMar'), color: 'bg-blue-500' },
+  { label: i18next.t('testWidget.aprJun'), color: 'bg-green-500' },
+  { label: i18next.t('testWidget.julSep'), color: 'bg-yellow-500' },
+  { label: i18next.t('testWidget.octDec'), color: 'bg-red-500' },
 ];
 
-const NAV_SECTIONS = [
+const getNavSections = () => [
   {
-    title: 'Main',
+    title: i18next.t('testWidget.navMain'),
     items: [
-      { icon: LayoutDashboard, label: 'Dashboard', active: true },
-      { icon: TrendingUp, label: 'Analytics' },
-      { icon: FileText, label: 'Reports' },
+      { icon: LayoutDashboard, label: i18next.t('testWidget.dashboard'), active: true },
+      { icon: TrendingUp, label: i18next.t('testWidget.navAnalytics') },
+      { icon: FileText, label: i18next.t('testWidget.navReports') },
     ],
   },
   {
-    title: 'Management',
+    title: i18next.t('testWidget.navManagement'),
     items: [
-      { icon: Users, label: 'Users' },
-      { icon: FolderOpen, label: 'Projects' },
-      { icon: Settings, label: 'Settings' },
+      { icon: Users, label: i18next.t('testWidget.navUsers') },
+      { icon: FolderOpen, label: i18next.t('testWidget.navProjects') },
+      { icon: Settings, label: i18next.t('testWidget.settings') },
     ],
   },
   {
-    title: 'Support',
+    title: i18next.t('testWidget.navSupport'),
     items: [
-      { icon: Bug, label: 'Bug Reports' },
-      { icon: MessageSquare, label: 'Feedback' },
-      { icon: BookOpen, label: 'Documentation' },
+      { icon: Bug, label: i18next.t('testWidget.navBugReports') },
+      { icon: MessageSquare, label: i18next.t('testWidget.navFeedback') },
+      { icon: BookOpen, label: i18next.t('testWidget.navDocumentation') },
     ],
   },
 ];
@@ -155,6 +157,7 @@ function getStatusBadgeClasses(status: string): string {
 }
 
 export function TestWidgetPage() {
+  const { t } = useTranslation('testWidget');
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -282,7 +285,7 @@ export function TestWidgetPage() {
             className="bg-white shadow-lg"
             onClick={() => setScreenshotMode(false)}
           >
-            Exit Screenshot Mode
+            {t('testWidget.exitScreenshotMode')}
           </Button>
         </div>
       </div>
@@ -298,10 +301,9 @@ export function TestWidgetPage() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enter API Key</DialogTitle>
+            <DialogTitle>{t('testWidget.enterApiKeyTitle')}</DialogTitle>
             <DialogDescription>
-              Please enter your BugPin project API key to test the widget. You can find this in your
-              project details.
+              {t('testWidget.enterApiKeyDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -316,10 +318,10 @@ export function TestWidgetPage() {
           <DialogFooter>
             {apiKey && (
               <Button variant="secondary" onClick={handleCancelApiKeyChange}>
-                Cancel
+                {t('common.cancel')}
               </Button>
             )}
-            <Button onClick={handleSaveApiKey}>Continue</Button>
+            <Button onClick={handleSaveApiKey}>{t('testWidget.continueBtn')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -327,7 +329,7 @@ export function TestWidgetPage() {
       {/* API Key Notice Banner */}
       {apiKey && (
         <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-5 py-3 text-center text-sm border-b border-green-200 dark:border-green-800 flex-shrink-0">
-          API key:{' '}
+          {t('testWidget.apiKeyColon')}{' '}
           <code className="bg-green-200 dark:bg-green-800 px-1.5 py-0.5 rounded font-mono text-xs">
             {apiKey}
           </code>
@@ -337,7 +339,7 @@ export function TestWidgetPage() {
             className="ml-3 h-7 bg-green-600 hover:bg-green-700 text-white"
             onClick={handleChangeApiKey}
           >
-            Change
+            {t('testWidget.changeBtn')}
           </Button>
         </div>
       )}
@@ -346,12 +348,12 @@ export function TestWidgetPage() {
         {/* Sidebar */}
         <aside className="w-64 flex-shrink-0 bg-zinc-800 dark:bg-zinc-900 text-white overflow-y-auto">
           <div className="px-5 py-5 border-b border-zinc-700">
-            <div className="text-2xl font-semibold">BugPin Test</div>
-            <div className="text-xs text-zinc-400 mt-1">Widget Testing Dashboard</div>
+            <div className="text-2xl font-semibold">{t('testWidget.bugpinTest')}</div>
+            <div className="text-xs text-zinc-400 mt-1">{t('testWidget.widgetTestingDashboard')}</div>
           </div>
 
           <nav className="py-5">
-            {NAV_SECTIONS.map((section) => (
+            {getNavSections().map((section) => (
               <div key={section.title} className="mb-6">
                 <div className="px-5 text-[11px] uppercase text-zinc-500 font-semibold mb-2">
                   {section.title}
@@ -379,18 +381,18 @@ export function TestWidgetPage() {
         <main className="flex-1 flex flex-col min-h-0">
           {/* Header */}
           <header className="bg-background border-b px-8 h-16 flex items-center justify-between flex-shrink-0">
-            <h1 className="text-xl font-semibold">Dashboard Overview</h1>
+            <h1 className="text-xl font-semibold">{t('testWidget.dashboardOverview')}</h1>
             <div className="flex items-center gap-4">
               <Button variant="outline" onClick={toggleTheme}>
                 {resolvedTheme === 'light' ? (
                   <>
                     <Moon className="h-4 w-4 mr-2" />
-                    Dark Mode
+                    {t('testWidget.darkModeBtn')}
                   </>
                 ) : (
                   <>
                     <Sun className="h-4 w-4 mr-2" />
-                    Light Mode
+                    {t('testWidget.lightModeBtn')}
                   </>
                 )}
               </Button>
@@ -401,7 +403,7 @@ export function TestWidgetPage() {
           <div className="flex-1 overflow-y-auto p-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-              {STATS.map((stat) => (
+              {getStats().map((stat) => (
                 <Card key={stat.label}>
                   <CardContent className="p-6">
                     <div className="text-sm text-muted-foreground mb-2">{stat.label}</div>
@@ -413,7 +415,7 @@ export function TestWidgetPage() {
                           : 'text-red-600 dark:text-red-400'
                       }`}
                     >
-                      {stat.positive ? '↑' : '↓'} {stat.change} from last month
+                      {stat.positive ? '↑' : '↓'} {stat.change} {t('testWidget.fromLastMonth')}
                     </div>
                   </CardContent>
                 </Card>
@@ -423,8 +425,8 @@ export function TestWidgetPage() {
             {/* Monthly Performance Chart */}
             <Card className="mb-5">
               <CardHeader className="flex-row items-center justify-between space-y-0">
-                <CardTitle>Monthly Performance</CardTitle>
-                <Button variant="secondary">Export Data</Button>
+                <CardTitle>{t('testWidget.monthlyPerformance')}</CardTitle>
+                <Button variant="secondary">{t('testWidget.exportData')}</Button>
               </CardHeader>
               <CardContent>
                 <div className="h-64 bg-muted/50 rounded-lg flex items-end gap-2 p-5">
@@ -437,7 +439,7 @@ export function TestWidgetPage() {
                   ))}
                 </div>
                 <div className="flex gap-5 mt-4 flex-wrap">
-                  {CHART_LEGEND.map((item) => (
+                  {getChartLegend().map((item) => (
                     <div key={item.label} className="flex items-center gap-2 text-sm">
                       <div className={`w-4 h-4 rounded ${item.color}`} />
                       <span>{item.label}</span>
@@ -450,38 +452,48 @@ export function TestWidgetPage() {
             {/* Recent Transactions Table */}
             <Card className="mb-5">
               <CardHeader className="flex-row items-center justify-between space-y-0">
-                <CardTitle>Recent Transactions</CardTitle>
-                <Button variant="secondary">View All</Button>
+                <CardTitle>{t('testWidget.recentTransactions')}</CardTitle>
+                <Button variant="secondary">{t('testWidget.viewAll')}</Button>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Transaction ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('testWidget.transactionId')}</TableHead>
+                      <TableHead>{t('testWidget.customer')}</TableHead>
+                      <TableHead>{t('testWidget.date')}</TableHead>
+                      <TableHead>{t('testWidget.amount')}</TableHead>
+                      <TableHead>{t('testWidget.statusCol')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {TRANSACTIONS.map((txn) => (
-                      <TableRow key={txn.id}>
-                        <TableCell className="font-medium">{txn.id}</TableCell>
-                        <TableCell>{txn.customer}</TableCell>
-                        <TableCell>{txn.date}</TableCell>
-                        <TableCell>{txn.amount}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClasses(
-                              txn.status,
-                            )}`}
-                          >
-                            {txn.status}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {TRANSACTIONS.map((txn) => {
+                      const statusLabel =
+                        txn.status === 'Completed'
+                          ? t('testWidget.txStatusCompleted')
+                          : txn.status === 'Pending'
+                          ? t('testWidget.txStatusPending')
+                          : txn.status === 'Failed'
+                          ? t('testWidget.txStatusFailed')
+                          : txn.status;
+                      return (
+                        <TableRow key={txn.id}>
+                          <TableCell className="font-medium">{txn.id}</TableCell>
+                          <TableCell>{txn.customer}</TableCell>
+                          <TableCell>{txn.date}</TableCell>
+                          <TableCell>{txn.amount}</TableCell>
+                          <TableCell>
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClasses(
+                                txn.status,
+                              )}`}
+                            >
+                              {statusLabel}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -490,7 +502,7 @@ export function TestWidgetPage() {
             {/* Project Progress */}
             <Card className="mb-5">
               <CardHeader>
-                <CardTitle>Project Progress</CardTitle>
+                <CardTitle>{t('testWidget.projectProgress')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {PROJECTS.map((project) => (
@@ -509,12 +521,12 @@ export function TestWidgetPage() {
             <Card className="mb-5 border-dashed border-2 border-orange-300 dark:border-orange-700">
               <CardHeader>
                 <CardTitle className="text-orange-600 dark:text-orange-400">
-                  Error Capture Testing
+                  {t('testWidget.errorCaptureTesting')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Click these buttons to generate errors that will be captured in bug reports.
+                  {t('testWidget.errorCaptureTestingHint')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -522,7 +534,7 @@ export function TestWidgetPage() {
                     size="sm"
                     onClick={() => console.error('Test error: Something went wrong!')}
                   >
-                    Trigger Console Error
+                    {t('testWidget.triggerConsoleError')}
                   </Button>
                   <Button
                     variant="outline"
@@ -530,14 +542,14 @@ export function TestWidgetPage() {
                     className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                     onClick={() => console.warn('Test warning: Deprecated API usage detected')}
                   >
-                    Trigger Console Warning
+                    {t('testWidget.triggerConsoleWarning')}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => window.fetch('/api/non-existent-endpoint-404')}
                   >
-                    Trigger 404 Error
+                    {t('testWidget.trigger404Error')}
                   </Button>
                   <Button
                     variant="outline"
@@ -547,7 +559,7 @@ export function TestWidgetPage() {
                       undefinedFunction();
                     }}
                   >
-                    Trigger JS Error
+                    {t('testWidget.triggerJsError')}
                   </Button>
                 </div>
               </CardContent>
@@ -557,32 +569,31 @@ export function TestWidgetPage() {
             <Card className="mb-5 border-dashed border-2 border-blue-300 dark:border-blue-700">
               <CardHeader>
                 <CardTitle className="text-blue-600 dark:text-blue-400">
-                  User Activity Tracking Demo
+                  {t('testWidget.userActivityDemo')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Click these elements to generate activity trail entries. All clicks are tracked
-                  and will appear in the bug report.
+                  {t('testWidget.userActivityDemoHint')}
                 </p>
 
                 {/* Action Buttons */}
                 <div>
                   <Label className="text-xs uppercase text-muted-foreground mb-2 block">
-                    Action Buttons
+                    {t('testWidget.actionButtons')}
                   </Label>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" onClick={() => alert('Save clicked!')}>
-                      Save Changes
+                    <Button size="sm" onClick={() => alert(t('testWidget.saveClicked'))}>
+                      {t('testWidget.saveChanges')}
                     </Button>
-                    <Button size="sm" variant="secondary" onClick={() => alert('Cancel clicked!')}>
-                      Cancel
+                    <Button size="sm" variant="secondary" onClick={() => alert(t('testWidget.cancelClicked'))}>
+                      {t('common.cancel')}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => alert('Settings clicked!')}>
-                      Open Settings
+                    <Button size="sm" variant="outline" onClick={() => alert(t('testWidget.settingsClicked'))}>
+                      {t('testWidget.openSettings')}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => alert('Help clicked!')}>
-                      Get Help
+                    <Button size="sm" variant="ghost" onClick={() => alert(t('testWidget.helpClicked'))}>
+                      {t('testWidget.getHelp')}
                     </Button>
                   </div>
                 </div>
@@ -590,7 +601,7 @@ export function TestWidgetPage() {
                 {/* Links */}
                 <div>
                   <Label className="text-xs uppercase text-muted-foreground mb-2 block">
-                    Navigation Links
+                    {t('testWidget.navigationLinks')}
                   </Label>
                   <div className="flex flex-wrap gap-4">
                     <a
@@ -601,7 +612,7 @@ export function TestWidgetPage() {
                         history.pushState({}, '', '#dashboard');
                       }}
                     >
-                      Dashboard
+                      {t('testWidget.dashboard')}
                     </a>
                     <a
                       href="#settings"
@@ -611,7 +622,7 @@ export function TestWidgetPage() {
                         history.pushState({}, '', '#settings');
                       }}
                     >
-                      Settings
+                      {t('testWidget.settings')}
                     </a>
                     <a
                       href="#profile"
@@ -621,7 +632,7 @@ export function TestWidgetPage() {
                         history.pushState({}, '', '#profile');
                       }}
                     >
-                      Profile
+                      {t('testWidget.profile')}
                     </a>
                     <a
                       href="https://example.com"
@@ -629,7 +640,7 @@ export function TestWidgetPage() {
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
                     >
-                      External Link
+                      {t('testWidget.externalLink')}
                     </a>
                   </div>
                 </div>
@@ -637,23 +648,23 @@ export function TestWidgetPage() {
                 {/* Form Inputs */}
                 <div>
                   <Label className="text-xs uppercase text-muted-foreground mb-2 block">
-                    Form Interactions
+                    {t('testWidget.formInteractions')}
                   </Label>
                   <div className="flex flex-wrap gap-3 items-center">
-                    <Input placeholder="Click to focus..." className="w-48" name="demo_input" />
+                    <Input placeholder={t('testWidget.clickToFocus')} className="w-48" name="demo_input" />
                     <Select>
                       <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Select option" />
+                        <SelectValue placeholder={t('testWidget.selectOption')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="opt1">Option 1</SelectItem>
-                        <SelectItem value="opt2">Option 2</SelectItem>
-                        <SelectItem value="opt3">Option 3</SelectItem>
+                        <SelectItem value="opt1">{t('testWidget.option1')}</SelectItem>
+                        <SelectItem value="opt2">{t('testWidget.option2')}</SelectItem>
+                        <SelectItem value="opt3">{t('testWidget.option3')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Checkbox</span>
+                      <span className="text-sm">{t('testWidget.checkboxLabel')}</span>
                     </label>
                   </div>
                 </div>
@@ -664,19 +675,18 @@ export function TestWidgetPage() {
             <Card className="mb-5 border-dashed border-2 border-purple-300 dark:border-purple-700">
               <CardHeader>
                 <CardTitle className="text-purple-600 dark:text-purple-400">
-                  Storage Keys Demo
+                  {t('testWidget.storageKeysDemo')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Test storage data has been automatically set. These keys will appear in bug
-                  reports.
+                  {t('testWidget.storageKeysDemoHint')}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-3 bg-muted rounded-lg">
                     <Label className="text-xs uppercase text-muted-foreground mb-2 block">
-                      Cookies
+                      {t('testWidget.cookiesLabel')}
                     </Label>
                     <div className="space-y-1 text-sm font-mono">
                       <div>bugpin_test_cookie</div>
@@ -685,7 +695,7 @@ export function TestWidgetPage() {
                   </div>
                   <div className="p-3 bg-muted rounded-lg">
                     <Label className="text-xs uppercase text-muted-foreground mb-2 block">
-                      LocalStorage
+                      {t('testWidget.localStorageLabel')}
                     </Label>
                     <div className="space-y-1 text-sm font-mono">
                       <div>bugpin_test_user_prefs</div>
@@ -694,7 +704,7 @@ export function TestWidgetPage() {
                   </div>
                   <div className="p-3 bg-muted rounded-lg">
                     <Label className="text-xs uppercase text-muted-foreground mb-2 block">
-                      SessionStorage
+                      {t('testWidget.sessionStorageLabel')}
                     </Label>
                     <div className="space-y-1 text-sm font-mono">
                       <div>bugpin_test_session_id</div>
@@ -709,30 +719,30 @@ export function TestWidgetPage() {
                     variant="outline"
                     onClick={() => {
                       localStorage.setItem('bugpin_dynamic_key_' + Date.now(), 'value');
-                      alert('New localStorage key added!');
+                      alert(t('testWidget.newLocalStorageKey'));
                     }}
                   >
-                    Add LocalStorage Key
+                    {t('testWidget.addLocalStorageKey')}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
                       sessionStorage.setItem('bugpin_dynamic_session_' + Date.now(), 'value');
-                      alert('New sessionStorage key added!');
+                      alert(t('testWidget.newSessionStorageKey'));
                     }}
                   >
-                    Add SessionStorage Key
+                    {t('testWidget.addSessionStorageKey')}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
                       document.cookie = `bugpin_dynamic_${Date.now()}=value; path=/`;
-                      alert('New cookie added!');
+                      alert(t('testWidget.newCookieAdded'));
                     }}
                   >
-                    Add Cookie
+                    {t('testWidget.addCookieBtn')}
                   </Button>
                 </div>
               </CardContent>
@@ -746,7 +756,7 @@ export function TestWidgetPage() {
                 className="border-dashed border-2"
                 onClick={() => setScreenshotMode(true)}
               >
-                Enter Screenshot Mode (White Background)
+                {t('testWidget.enterScreenshotMode')}
               </Button>
             </div>
           </div>

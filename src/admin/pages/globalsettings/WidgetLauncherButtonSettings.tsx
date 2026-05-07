@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '../../api/client';
@@ -45,6 +46,7 @@ export function WidgetLauncherButtonSettings() {
 }
 
 function WidgetLauncherButtonSettingsSection() {
+  const { t } = useTranslation('widgetLauncherButton');
   const queryClient = useQueryClient();
   // Track local edits separately - null means use settings values
   const [localEdits, setLocalEdits] = useState<GlobalWidgetLauncherButtonSettings | null>(null);
@@ -97,10 +99,10 @@ function WidgetLauncherButtonSettingsSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       setLocalEdits(null); // Clear local edits after save
-      toast.success('Widget launcher button settings saved successfully');
+      toast.success(t('widgetLauncherButton.savedSuccessfully'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to save settings');
+      toast.error(err.response?.data?.message || t('widgetLauncherButton.saveFailed'));
     },
   });
 
@@ -129,9 +131,9 @@ function WidgetLauncherButtonSettingsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Widget Button Settings</CardTitle>
+        <CardTitle>{t('globalSettings.widgetLauncherButtonSettings')}</CardTitle>
         <CardDescription>
-          Configure the appearance and behavior of the floating widget launcher button.
+          {t('globalSettings.widgetLauncherButtonSettingsDescription')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -143,10 +145,10 @@ function WidgetLauncherButtonSettingsSection() {
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('system.saveChanges')
               )}
             </Button>
             <Button
@@ -156,7 +158,7 @@ function WidgetLauncherButtonSettingsSection() {
               disabled={mutation.isPending}
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset to Default
+              {t('branding.resetToDefault')}
             </Button>
           </div>
         </CardContent>

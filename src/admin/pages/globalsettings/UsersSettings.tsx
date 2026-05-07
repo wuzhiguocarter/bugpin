@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -66,6 +68,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 export function UsersSettings() {
+  const { t } = useTranslation('users');
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -98,11 +101,11 @@ export function UsersSettings() {
       if (data.warning) {
         toast.warning(data.warning);
       } else {
-        toast.success('Invitation sent successfully');
+        toast.success(t('users.invitationSent'));
       }
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to send invitation');
+      toast.error(err.response?.data?.message || t('users.invitationSendFailed'));
     },
   });
 
@@ -116,11 +119,11 @@ export function UsersSettings() {
       if (data.warning) {
         toast.warning(data.warning);
       } else {
-        toast.success('Invitation resent successfully');
+        toast.success(t('users.invitationResent'));
       }
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to resend invitation');
+      toast.error(err.response?.data?.message || t('users.invitationResendFailed'));
     },
   });
 
@@ -140,10 +143,10 @@ export function UsersSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast.success('User updated successfully');
+      toast.success(t('users.userUpdated'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to update user');
+      toast.error(err.response?.data?.message || t('users.userUpdateFailed'));
     },
   });
 
@@ -154,10 +157,10 @@ export function UsersSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteUser(null);
-      toast.success('User deleted successfully');
+      toast.success(t('users.userDeleted'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to delete user');
+      toast.error(err.response?.data?.message || t('users.userDeleteFailed'));
     },
   });
 
@@ -174,21 +177,21 @@ export function UsersSettings() {
   };
 
   const getDefaultProjectsLabel = (defaultProjects: DefaultProjectReference[]): string => {
-    if (defaultProjects.length === 0) return 'No default projects';
+    if (defaultProjects.length === 0) return t('users.noDefaultProjects');
     if (defaultProjects.length === 1) return defaultProjects[0].name;
-    return `${defaultProjects.length} default projects`;
+    return t('users.defaultProjectsLabel', { count: defaultProjects.length });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Users</h2>
-          <p className="text-sm text-muted-foreground">Manage user accounts and permissions</p>
+          <h2 className="text-xl font-semibold">{t('users.usersSettings')}</h2>
+          <p className="text-sm text-muted-foreground">{t('users.manageDescription')}</p>
         </div>
         <Button onClick={() => setShowInviteModal(true)}>
           <Mail className="h-4 w-4 mr-2" />
-          Invite User
+          {t('users.inviteUser')}
         </Button>
       </div>
 
@@ -197,11 +200,11 @@ export function UsersSettings() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Default Projects</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('users.userColumn')}</TableHead>
+              <TableHead>{t('users.defaultProjectsColumn')}</TableHead>
+              <TableHead>{t('users.roleColumn')}</TableHead>
+              <TableHead>{t('users.statusColumn')}</TableHead>
+              <TableHead className="text-right">{t('users.actionsColumn')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -246,14 +249,13 @@ export function UsersSettings() {
                       </PopoverTrigger>
                       <PopoverContent align="start" className="w-80 p-0">
                         <div className="border-b px-4 py-3">
-                          <p className="text-sm font-medium">Default Projects</p>
+                          <p className="text-sm font-medium">{t('users.defaultProjectsTitle')}</p>
                           <p className="text-xs text-muted-foreground">
-                            New reports from selected projects are assigned to {user.name}.
+                            {t('users.defaultProjectsDescription', { name: user.name })}
                           </p>
                           {!isAssignableUser(user) ? (
                             <p className="mt-2 text-xs text-amber-600">
-                              This user must be active and have accepted their invitation before
-                              they can be added to new default projects.
+                              {t('users.userMustBeActive')}
                             </p>
                           ) : null}
                         </div>
@@ -264,7 +266,7 @@ export function UsersSettings() {
                             </div>
                           ) : projects.length === 0 ? (
                             <p className="px-2 py-3 text-sm text-muted-foreground">
-                              No projects available.
+                              {t('users.noProjectsAvailable')}
                             </p>
                           ) : (
                             projects.map((project) => {
@@ -314,9 +316,9 @@ export function UsersSettings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="editor">Editor</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
+                        <SelectItem value="admin">{t('users.admin')}</SelectItem>
+                        <SelectItem value="editor">{t('users.editor')}</SelectItem>
+                        <SelectItem value="viewer">{t('users.viewer')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -324,10 +326,10 @@ export function UsersSettings() {
                     {isPendingInvitation(user) ? (
                       <div className="flex flex-col gap-1">
                         <Badge variant="outline" className="status-pending w-fit">
-                          Pending
+                          {t('users.pending')}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          Invited {formatRelativeTime(user.invitationSentAt!)}
+                          {t('users.invitedAt', { time: formatRelativeTime(user.invitationSentAt!) })}
                         </span>
                       </div>
                     ) : (
@@ -343,7 +345,7 @@ export function UsersSettings() {
                           variant="outline"
                           className={`cursor-pointer ${user.isActive ? 'status-active' : 'status-inactive'}`}
                         >
-                          {user.isActive ? 'Active' : 'Inactive'}
+                          {user.isActive ? t('users.active') : t('users.inactive')}
                         </Badge>
                       </Button>
                     )}
@@ -356,7 +358,7 @@ export function UsersSettings() {
                           size="sm"
                           onClick={() => resendInvitationMutation.mutate(user.id)}
                           disabled={resendInvitationMutation.isPending}
-                          title="Resend invitation"
+                          title={t('users.resendInvitationTitle')}
                         >
                           {resendInvitationMutation.isPending ? (
                             <Spinner size="sm" />
@@ -394,19 +396,18 @@ export function UsersSettings() {
       <AlertDialog open={!!deleteUser} onOpenChange={() => setDeleteUser(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogTitle>{t('users.deleteUser')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteUser?.name}" ({deleteUser?.email})? This
-              action cannot be undone.
+              {t('users.deleteUserConfirmFull', { name: deleteUser?.name ?? '', email: deleteUser?.email ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={() => deleteUser && deleteMutation.mutate(deleteUser.id)}
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -415,13 +416,14 @@ export function UsersSettings() {
   );
 }
 
-const inviteUserSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
-  role: z.enum(['admin', 'editor', 'viewer']),
-});
+const inviteUserSchema = () =>
+  z.object({
+    name: z.string().min(2, i18next.t('users.nameMinLength')),
+    email: z.string().min(1, i18next.t('users.emailRequired')).email(i18next.t('users.invalidEmail')),
+    role: z.enum(['admin', 'editor', 'viewer']),
+  });
 
-type InviteUserFormData = z.infer<typeof inviteUserSchema>;
+type InviteUserFormData = z.infer<ReturnType<typeof inviteUserSchema>>;
 
 function InviteUserModal({
   open,
@@ -434,6 +436,7 @@ function InviteUserModal({
   onInvite: (data: { email: string; name: string; role: string }) => void;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation('users');
   const [selectedRole, setSelectedRole] = useState('viewer');
 
   const {
@@ -442,7 +445,7 @@ function InviteUserModal({
     reset,
     formState: { errors },
   } = useForm<InviteUserFormData>({
-    resolver: zodResolver(inviteUserSchema),
+    resolver: zodResolver(inviteUserSchema()),
     defaultValues: {
       name: '',
       email: '',
@@ -466,21 +469,20 @@ function InviteUserModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite User</DialogTitle>
+          <DialogTitle>{t('users.inviteUser')}</DialogTitle>
           <DialogDescription>
-            Send an invitation email to a new user. They will set their own password when they
-            accept the invitation.
+            {t('users.inviteDescription')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="user-name">
-                Name <span className="text-destructive">*</span>
+                {t('users.nameLabel')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="user-name"
-                placeholder="John Doe"
+                placeholder={t('users.namePlaceholder')}
                 {...register('name')}
                 aria-invalid={!!errors.name}
               />
@@ -488,45 +490,45 @@ function InviteUserModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-email">
-                Email <span className="text-destructive">*</span>
+                {t('users.emailLabel')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="user-email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder={t('users.emailPlaceholder')}
                 {...register('email')}
                 aria-invalid={!!errors.email}
               />
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="user-role">Role</Label>
+              <Label htmlFor="user-role">{t('users.role')}</Label>
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="admin">{t('users.admin')}</SelectItem>
+                  <SelectItem value="editor">{t('users.editor')}</SelectItem>
+                  <SelectItem value="viewer">{t('users.viewer')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Sending...
+                  {t('users.sending')}
                 </>
               ) : (
                 <>
                   <Mail className="h-4 w-4 mr-2" />
-                  Send Invitation
+                  {t('users.sendInvitation')}
                 </>
               )}
             </Button>

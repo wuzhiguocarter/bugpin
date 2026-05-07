@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { licenseApi } from '../../api/license';
@@ -28,6 +29,7 @@ import {
 } from '../../components/ui/alert-dialog';
 
 export function LicenseSettings() {
+  const { t } = useTranslation('license');
   const queryClient = useQueryClient();
   const [licenseKey, setLicenseKey] = useState('');
 
@@ -41,11 +43,11 @@ export function LicenseSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['license-status'] });
       queryClient.invalidateQueries({ queryKey: ['license-features'] });
-      toast.success('License activated successfully');
+      toast.success(t('license.licenseActivated'));
       setLicenseKey('');
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to activate license');
+      toast.error(err.response?.data?.message || t('license.activationFailed'));
     },
   });
 
@@ -54,17 +56,17 @@ export function LicenseSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['license-status'] });
       queryClient.invalidateQueries({ queryKey: ['license-features'] });
-      toast.success('License removed');
+      toast.success(t('license.licenseRemoved'));
     },
     onError: () => {
-      toast.error('Failed to remove license');
+      toast.error(t('license.licenseRemoveFailed'));
     },
   });
 
   const handleActivate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!licenseKey.trim()) {
-      toast.error('Please enter a license key');
+      toast.error(t('license.enterLicenseKey'));
       return;
     }
     activateMutation.mutate(licenseKey.trim());
@@ -94,12 +96,12 @@ export function LicenseSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="h-5 w-5" />
-            License Status
+            {t('license.licenseStatus')}
           </CardTitle>
           <CardDescription>
             {isLicensed
-              ? 'Your Enterprise license is active'
-              : 'Enter your license key to unlock Enterprise features'}
+              ? t('license.enterpriseActive')
+              : t('license.enterpriseEnter')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,32 +110,32 @@ export function LicenseSettings() {
               <div className="flex items-center gap-2">
                 <Badge variant="default" className="bg-green-600">
                   <Check className="h-3 w-3 mr-1" />
-                  Licensed
+                  {t('license.licensed')}
                 </Badge>
                 <Badge variant="outline">{status?.plan}</Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Customer</p>
+                  <p className="text-muted-foreground">{t('license.customer')}</p>
                   <p className="font-medium">{status?.customerName || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Email</p>
+                  <p className="text-muted-foreground">{t('license.customerEmail')}</p>
                   <p className="font-medium">{status?.customerEmail || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Issued</p>
+                  <p className="text-muted-foreground">{t('license.issued')}</p>
                   <p className="font-medium">
-                    {status?.issuedAt ? new Date(status.issuedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                    {status?.issuedAt ? new Date(status.issuedAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Expires</p>
+                  <p className="text-muted-foreground">{t('license.expires')}</p>
                   <p className="font-medium">
-                    {!expiresDate || neverExpires ? 'Never' : expiresDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    {!expiresDate || neverExpires ? t('license.never') : expiresDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                     {daysRemaining > 0 && daysRemaining <= 30 && (
-                      <span className="text-orange-500 ml-2">({daysRemaining} days left)</span>
+                      <span className="text-orange-500 ml-2">{t('license.daysLeft', { count: daysRemaining })}</span>
                     )}
                   </p>
                 </div>
@@ -142,7 +144,7 @@ export function LicenseSettings() {
               {/* Licensed Features */}
               {status?.features && status.features.length > 0 && (
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Licensed Features</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t('license.licensedFeatures')}</p>
                   <div className="flex flex-wrap gap-2">
                     {status.features.map((feature) => (
                       <Badge key={feature} variant="secondary">
@@ -159,24 +161,23 @@ export function LicenseSettings() {
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Remove License
+                      {t('license.removeLicense')}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Remove License?</AlertDialogTitle>
+                      <AlertDialogTitle>{t('license.removeLicense')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will remove your Enterprise license. All EE features will be disabled
-                        until you enter a new license key.
+                        {t('license.removeLicenseConfirm')}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => removeMutation.mutate()}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Remove
+                        {t('license.remove')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -186,10 +187,10 @@ export function LicenseSettings() {
           ) : (
             <form onSubmit={handleActivate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="license-key">License Key</Label>
+                <Label htmlFor="license-key">{t('license.licenseKey')}</Label>
                 <Textarea
                   id="license-key"
-                  placeholder="Paste your license key here..."
+                  placeholder={t('license.licenseKeyPlaceholder')}
                   value={licenseKey}
                   onChange={(e) => setLicenseKey(e.target.value)}
                   rows={4}
@@ -199,7 +200,7 @@ export function LicenseSettings() {
               <div className="flex items-center gap-4">
                 <Button type="submit" disabled={activateMutation.isPending}>
                   {activateMutation.isPending && <Spinner size="sm" className="mr-2" />}
-                  Activate License
+                  {t('license.activateLicense')}
                 </Button>
                 <a
                   href="https://bugpin.io/editions/"
@@ -207,7 +208,7 @@ export function LicenseSettings() {
                   rel="noopener noreferrer"
                   className="text-sm text-primary hover:underline flex items-center gap-1"
                 >
-                  Get a license
+                  {t('license.getLicense')}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

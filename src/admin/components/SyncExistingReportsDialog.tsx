@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSyncExistingReports } from '../hooks/useIntegrations';
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function SyncExistingReportsDialog({
   integrationId,
   unsyncedCount,
 }: SyncExistingReportsDialogProps) {
+  const { t } = useTranslation();
   const [syncOption, setSyncOption] = useState<'all' | 'future'>('future');
   const syncMutation = useSyncExistingReports();
 
@@ -46,14 +48,13 @@ export function SyncExistingReportsDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Enable Automatic Sync</DialogTitle>
+          <DialogTitle>{t('syncExisting.enableAutomaticSync')}</DialogTitle>
           <DialogDescription>
-            Automatic sync will create GitHub issues for all new reports.
+            {t('syncExisting.automaticSyncDescription')}
             {unsyncedCount > 0 && (
               <>
                 {' '}
-                You have {unsyncedCount} existing report{unsyncedCount > 1 ? 's' : ''} not yet
-                synced to GitHub.
+                {t('syncExisting.unsyncedReports', { count: unsyncedCount })}
               </>
             )}
           </DialogDescription>
@@ -76,9 +77,9 @@ export function SyncExistingReportsDialog({
                 {syncOption === 'all' && <CheckCircle2 className="h-3 w-3 text-primary" />}
               </div>
               <Label className="cursor-pointer flex-1">
-                <div className="font-medium">Sync all existing reports</div>
+                <div className="font-medium">{t('syncExisting.syncAllExisting')}</div>
                 <p className="text-sm text-muted-foreground font-normal">
-                  Queue {unsyncedCount} existing report{unsyncedCount > 1 ? 's' : ''} for sync
+                  {t('syncExisting.syncAllExistingDescription', { count: unsyncedCount })}
                 </p>
               </Label>
             </button>
@@ -98,9 +99,9 @@ export function SyncExistingReportsDialog({
               {syncOption === 'future' && <CheckCircle2 className="h-3 w-3 text-primary" />}
             </div>
             <Label className="cursor-pointer flex-1">
-              <div className="font-medium">Only sync future reports</div>
+              <div className="font-medium">{t('syncExisting.syncFutureOnly')}</div>
               <p className="text-sm text-muted-foreground font-normal">
-                Only new reports will be synced to GitHub
+                {t('syncExisting.syncFutureOnlyDescription')}
               </p>
             </Label>
           </button>
@@ -108,16 +109,16 @@ export function SyncExistingReportsDialog({
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={syncMutation.isPending}>
             {syncMutation.isPending ? (
               <>
                 <Spinner size="sm" className="mr-2" />
-                Syncing...
+                {t('syncExisting.syncing')}
               </>
             ) : (
-              'Enable Automatic Sync'
+              t('syncExisting.enableAutomaticSync')
             )}
           </Button>
         </DialogFooter>

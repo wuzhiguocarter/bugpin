@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '../../api/client';
@@ -21,6 +22,7 @@ export function SMTPSettings() {
   return <SMTPSettingsSection />;
 }
 function SMTPSettingsSection() {
+  const { t } = useTranslation('smtp');
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -61,10 +63,10 @@ function SMTPSettingsSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Email settings saved successfully');
+      toast.success(t('smtp.settingsSaved'));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to save settings');
+      toast.error(err.response?.data?.message || t('smtp.saveFailed'));
     },
   });
 
@@ -78,10 +80,10 @@ function SMTPSettingsSection() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success(`Test email sent successfully to ${user?.email}`);
+      toast.success(t('smtp.testEmailSent', { email: user?.email }));
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to send test email');
+      toast.error(err.response?.data?.message || t('smtp.testEmailFailed'));
     },
   });
 
@@ -93,11 +95,11 @@ function SMTPSettingsSection() {
 
   const handleTestEmail = () => {
     if (!formData.smtpConfig.host || !formData.smtpConfig.from) {
-      toast.error('Please fill in SMTP host and from address first');
+      toast.error(t('smtp.fillRequired'));
       return;
     }
     if (!user?.email) {
-      toast.error('User email not found');
+      toast.error(t('smtp.userEmailNotFound'));
       return;
     }
     testEmailMutation.mutate();
@@ -118,15 +120,15 @@ function SMTPSettingsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>SMTP Server</CardTitle>
+        <CardTitle>{t('smtp.smtpServer')}</CardTitle>
         <CardDescription>
-          Configure SMTP server settings for sending email notifications
+          {t('smtp.smtpServerDescription')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="smtp-host">SMTP Host</Label>
+            <Label htmlFor="smtp-host">{t('smtp.smtpHost')}</Label>
             <Input
               id="smtp-host"
               value={formData.smtpConfig.host}
@@ -136,12 +138,12 @@ function SMTPSettingsSection() {
                   smtpConfig: { ...formData.smtpConfig, host: e.target.value },
                 })
               }
-              placeholder="smtp.example.com"
+              placeholder={t('smtp.hostPlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="smtp-port">SMTP Port</Label>
+            <Label htmlFor="smtp-port">{t('smtp.smtpPort')}</Label>
             <Input
               id="smtp-port"
               type="number"
@@ -159,7 +161,7 @@ function SMTPSettingsSection() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="smtp-user">SMTP Username</Label>
+            <Label htmlFor="smtp-user">{t('smtp.smtpUsername')}</Label>
             <Input
               id="smtp-user"
               value={formData.smtpConfig.user}
@@ -169,13 +171,13 @@ function SMTPSettingsSection() {
                   smtpConfig: { ...formData.smtpConfig, user: e.target.value },
                 })
               }
-              placeholder="user@example.com"
+              placeholder={t('smtp.usernamePlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Leave blank if not required</p>
+            <p className="text-xs text-muted-foreground">{t('smtp.leaveBlankIfNotRequired')}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="smtp-password">SMTP Password</Label>
+            <Label htmlFor="smtp-password">{t('smtp.smtpPassword')}</Label>
             <Input
               id="smtp-password"
               type="password"
@@ -186,13 +188,13 @@ function SMTPSettingsSection() {
                   smtpConfig: { ...formData.smtpConfig, password: e.target.value },
                 })
               }
-              placeholder="Enter password"
+              placeholder={t('smtp.passwordPlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Leave blank if not required</p>
+            <p className="text-xs text-muted-foreground">{t('smtp.leaveBlankIfNotRequired')}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="smtp-from">From Email Address</Label>
+            <Label htmlFor="smtp-from">{t('smtp.fromEmailAddress')}</Label>
             <Input
               id="smtp-from"
               type="email"
@@ -203,7 +205,7 @@ function SMTPSettingsSection() {
                   smtpConfig: { ...formData.smtpConfig, from: e.target.value },
                 })
               }
-              placeholder="bugs@example.com"
+              placeholder={t('smtp.fromAddressPlaceholderBugs')}
             />
           </div>
 
@@ -212,10 +214,10 @@ function SMTPSettingsSection() {
               {mutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('system.saveChanges')
               )}
             </Button>
 
@@ -228,12 +230,12 @@ function SMTPSettingsSection() {
               {testEmailMutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Sending...
+                  {t('users.sending')}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Send Test Email
+                  {t('emailTemplates.sendTestEmailBtn')}
                 </>
               )}
             </Button>
@@ -241,7 +243,7 @@ function SMTPSettingsSection() {
 
           {user?.email && (
             <p className="text-xs text-muted-foreground pt-2">
-              Test email will be sent to: <strong>{user.email}</strong>
+              {t('emailTemplates.testEmailWillBeSent')} <strong>{user.email}</strong>
             </p>
           )}
         </CardContent>
