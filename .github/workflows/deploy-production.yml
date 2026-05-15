@@ -29,6 +29,8 @@ jobs:
             docker pull "$IMAGE"
             docker stop bugpin || true
             docker rm   bugpin || true
+            docker ps -q --filter "publish=7300" | xargs -r docker stop 2>/dev/null || true
+            docker ps -aq --filter "publish=7300" | xargs -r docker rm  2>/dev/null || true
             mkdir -p /opt/bugpin/data && chown -R 1000:1000 /opt/bugpin/data
             docker run -d \
               --name bugpin \
