@@ -29,6 +29,7 @@ jobs:
             docker pull "$IMAGE"
             docker stop bugpin || true
             docker rm   bugpin || true
+            mkdir -p /opt/bugpin/data && chown -R 1000:1000 /opt/bugpin/data
             docker run -d \
               --name bugpin \
               --restart unless-stopped \

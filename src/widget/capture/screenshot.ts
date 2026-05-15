@@ -137,7 +137,7 @@ function getSafePixelRatio(width: number, height: number, mode: CaptureMethod = 
 
 /**
  * Filter function to exclude BugPin elements from capture
- * Excludes: SCRIPT tags, elements with data-bugpin-exclude attribute
+ * Excludes: SCRIPT tags, elements with data-bugpin-exclude attribute, iframes
  */
 function shouldIncludeNode(node: Node): boolean {
   if (node instanceof HTMLElement) {
@@ -147,6 +147,12 @@ function shouldIncludeNode(node: Node): boolean {
     }
     // Exclude any element marked with the exclude attribute
     if (node.hasAttribute(EXCLUDE_ATTRIBUTE)) {
+      return false;
+    }
+    // Exclude iframes: sandboxed iframes (about:srcdoc) cause SVG rendering to
+    // fail because the browser blocks script execution inside the sandboxed
+    // frame when html-to-image loads the serialized SVG as an <img>
+    if (node.tagName === 'IFRAME') {
       return false;
     }
   }
