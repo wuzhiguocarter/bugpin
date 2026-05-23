@@ -1,0 +1,192 @@
+# GitLab CI 适配自 .github/workflows/*.yml
+#
+# 工作流：tag 推送 (v*.*.*) 触发流水线
+#   build         构建并推送 docker image 到 zot.migelab.com
+#   version-bump  把 package.json 版本号同步到目标分支 (dev / main)
+#   release       创建 GitLab Release（仅生产 tag，不含 -dev / -beta）
+#   deploy        SSH 到阿里云 ECS 部署最新镜像（仅生产 tag）
+#
+# 需要在 Project Settings → CI/CD → Variables 配置（或 wendao-ai group 级别）：
+#   ZOT_USERNAME, ZOT_PASSWORD     (Masked, Protected=NO)
+#   ECS_HOST, ECS_USER             (Masked, Protected=NO)
+#   ECS_SSH_KEY                    (File 类型, Protected=NO)  — 私钥内容
+#   GITLAB_PUSH_TOKEN              (Masked, Protected=NO)    — Project Access Token, scope=write_repository
+#
+# 6 个 group runner 都打了 'docker' tag，job 用 `tags: [docker]` 就能调度上。
+
+variables:
+  REGISTRY: zot.migelab.com
+  IMAGE_NAME: bugpin
+  GIT_DEPTH: "0"  # version-bump / release 需要完整 history
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/
+    - if: $CI_PIPELINE_SOURCE == "web"     # 允许手动触发
+    - when: never
+
+stages:
+  - build
+  - post-build
+
+# ---- helpers ----
+.tag-rules-all:
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+(-.+)?$/
+
+.tag-rules-production:
+  rules:
+    # 排除 -dev / -beta 后缀
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
+# ========================================================================
+# Stage 1: Build & Push
+# ========================================================================
+build:
+  stage: build
+  image: docker:27
+  tags: [docker]
+  rules: !reference [.tag-rules-all, rules]
+  before_script:
+    - apk add --no-cache bash
+    - echo "$ZOT_PASSWORD" | docker login "$REGISTRY" -u "$ZOT_USERNAME" --password-stdin
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - |
+      if echo "$VERSION" | grep -qE '(-dev|-beta)'; then
+        IS_DEV=true
+        TAGS="$REGISTRY/$IMAGE_NAME:$VERSION $REGISTRY/$IMAGE_NAME:dev"
+      else
+        IS_DEV=false
+        TAGS="$REGISTRY/$IMAGE_NAME:$VERSION $REGISTRY/$IMAGE_NAME:latest"
+      fi
+    - echo "version=$VERSION is_dev=$IS_DEV tags=$TAGS"
+    - TAG_ARGS=""; for T in $TAGS; do TAG_ARGS="$TAG_ARGS -t $T"; done
+    - |
+      docker build $TAG_ARGS \
+        --build-arg APP_VERSION="$VERSION" \
+        --build-arg USE_CN_MIRRORS=true \
+        --label org.opencontainers.image.title=BugPin \
+        --label "org.opencontainers.image.description=Self-hosted bug reporting and feedback widget" \
+        --label "org.opencontainers.image.vendor=Arantic Digital" \
+        .
+    - for T in $TAGS; do docker push "$T"; done
+  after_script:
+    - docker logout "$REGISTRY" || true
+
+# ========================================================================
+# Stage 2: version-bump  — 写回 package.json 版本号
+# ========================================================================
+version-bump:
+  stage: post-build
+  image: node:22-alpine
+  tags: [docker]
+  needs: ["build"]
+  rules: !reference [.tag-rules-all, rules]
+  before_script:
+    - apk add --no-cache git
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - |
+      if echo "$VERSION" | grep -qE '(-dev|-beta)'; then
+        TARGET=dev
+      else
+        TARGET=main
+      fi
+    - echo "target=$TARGET version=$VERSION"
+    - git fetch origin "$TARGET"
+    - git checkout "$TARGET"
+    - CURRENT=$(node -p "require('./package.json').version")
+    - |
+      if [ "$CURRENT" = "$VERSION" ]; then
+        echo "Already at $VERSION, skip"; exit 0
+      fi
+    - |
+      VERSION="$VERSION" node -e '
+        const fs = require("fs");
+        const v = process.env.VERSION;
+        for (const p of ["package.json", "src/server/package.json", "src/admin/package.json"]) {
+          const j = JSON.parse(fs.readFileSync(p));
+          j.version = v;
+          fs.writeFileSync(p, JSON.stringify(j, null, 2) + "\n");
+        }
+      '
+    - git config user.name "gitlab-ci"
+    - git config user.email "gitlab-ci@gitlab.wuzhiguo.tech"
+    - git add package.json src/server/package.json src/admin/package.json
+    - 'git commit -m "chore: bump version to $VERSION"'
+    - git push "https://oauth2:${GITLAB_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:$TARGET"
+
+# ========================================================================
+# Stage 3: release  — 仅生产 tag 创建 GitLab Release
+# ========================================================================
+release:
+  stage: post-build
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  tags: [docker]
+  needs: ["build"]
+  rules: !reference [.tag-rules-production, rules]
+  before_script:
+    - apk add --no-cache git
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - CHANGELOG_FILE="Changelog/v${VERSION}.md"
+    - PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed -n '2p' || true)
+    - |
+      if [ -f "$CHANGELOG_FILE" ]; then
+        tail -n +2 "$CHANGELOG_FILE" > /tmp/release-notes.md
+      elif [ -n "$PREVIOUS_TAG" ]; then
+        git log "$PREVIOUS_TAG..HEAD" --pretty=format:"- %s" > /tmp/release-notes.md
+      else
+        git log --pretty=format:"- %s" > /tmp/release-notes.md
+      fi
+    - |
+      printf "\n\n---\n**Compare**: %s/%s/-/compare/%s...%s\n" \
+        "$CI_SERVER_URL" "$CI_PROJECT_PATH" "$PREVIOUS_TAG" "$CI_COMMIT_TAG" >> /tmp/release-notes.md
+    - cat /tmp/release-notes.md
+  release:
+    tag_name: "$CI_COMMIT_TAG"
+    name: "BugPin $CI_COMMIT_TAG"
+    description: /tmp/release-notes.md
+
+# ========================================================================
+# Stage 4: deploy  — SSH 到阿里云 ECS 部署最新镜像（仅生产 tag）
+# ========================================================================
+deploy:
+  stage: post-build
+  image: alpine:latest
+  tags: [docker]
+  needs: ["build"]
+  rules: !reference [.tag-rules-production, rules]
+  environment:
+    name: production
+    url: https://bugpin.migelab.com
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - cp "$ECS_SSH_KEY" ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H -T 10 "$ECS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+  script:
+    - |
+      ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_ed25519 "$ECS_USER@$ECS_HOST" \
+        ZOT_USERNAME="$ZOT_USERNAME" \
+        ZOT_PASSWORD="$ZOT_PASSWORD" \
+        IMAGE="$REGISTRY/$IMAGE_NAME:latest" \
+        REGISTRY="$REGISTRY" \
+        bash -s <<'REMOTE'
+      set -e
+      echo "$ZOT_PASSWORD" | docker login "$REGISTRY" -u "$ZOT_USERNAME" --password-stdin
+      docker pull "$IMAGE"
+      docker stop bugpin || true
+      docker rm   bugpin || true
+      docker ps  -q --filter publish=7300 | xargs -r docker stop 2>/dev/null || true
+      docker ps -aq --filter publish=7300 | xargs -r docker rm  2>/dev/null || true
+      mkdir -p /opt/bugpin/data && chown -R 1000:1000 /opt/bugpin/data
+      docker run -d \
+        --name bugpin \
+        --restart unless-stopped \
+        -p 7300:7300 \
+        -v /opt/bugpin/data:/data \
+        "$IMAGE"
+      docker logout "$REGISTRY"
+      REMOTE
