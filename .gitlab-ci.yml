@@ -164,7 +164,10 @@ deploy:
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - cp "$ECS_SSH_KEY" ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+    # 用 env_var (base64) 而非 file 类型变量传私钥，
+    # 避免 file 变量上传过程中丢 trailing newline 导致 OpenSSH "error in libcrypto"。
+    - echo "$ECS_SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
     - ssh-keyscan -H -T 10 "$ECS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
   script:
     - |
