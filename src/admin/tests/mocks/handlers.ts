@@ -199,6 +199,18 @@ export const mockStats = {
     low: 3,
     lowest: 1,
   },
+  byPriorityDetail: {
+    highest: { total: 2, pending: 2, resolved: 0 },
+    high: { total: 5, pending: 4, resolved: 1 },
+    medium: { total: 6, pending: 3, resolved: 3 },
+    low: { total: 3, pending: 2, resolved: 1 },
+    lowest: { total: 1, pending: 1, resolved: 0 },
+  },
+  byReporter: [
+    { email: 'alice@example.com', name: 'Alice', total: 6, pending: 4, resolved: 2 },
+    { email: 'bob@example.com', name: 'Bob', total: 4, pending: 3, resolved: 1 },
+    { email: null, name: null, total: 7, pending: 5, resolved: 2 },
+  ],
 };
 
 // Default handlers

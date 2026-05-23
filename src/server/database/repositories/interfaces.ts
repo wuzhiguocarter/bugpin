@@ -52,6 +52,14 @@ export interface IReportsRepository {
     total: number;
     byStatus: Record<ReportStatus, number>;
     byPriority: Record<ReportPriority, number>;
+    byPriorityDetail: Record<ReportPriority, { total: number; pending: number; resolved: number }>;
+    byReporter: Array<{
+      email: string | null;
+      name: string | null;
+      total: number;
+      pending: number;
+      resolved: number;
+    }>;
   }>;
   findIdsOlderThan(days: number): Promise<string[]>;
   updateGitHubSyncStatus(

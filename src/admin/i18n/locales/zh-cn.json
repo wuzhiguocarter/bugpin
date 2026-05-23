@@ -81,7 +81,14 @@
     "recentReports": "最近报告",
     "viewAll": "查看全部",
     "noReports": "暂无报告",
-    "closed": "已关闭"
+    "closed": "已关闭",
+    "byPriorityTitle": "按优先级统计",
+    "byReporterTitle": "按反馈人统计",
+    "priority": "优先级",
+    "reporter": "反馈人",
+    "pending": "待解决",
+    "anonymous": "匿名",
+    "noReporterData": "暂无反馈人数据"
   },
   "reports": {
     "title": "报告",

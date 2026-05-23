@@ -121,8 +121,8 @@ describe('Dashboard Page', () => {
     // Check for status badge - "Open" appears in both stat card and badge
     // so we use getAllByText to check there's at least one
     expect(screen.getAllByText('Open').length).toBeGreaterThan(0);
-    // Check for priority badge
-    expect(screen.getByText('high')).toBeInTheDocument();
+    // Check for priority badge — "high" also appears in the by-priority stats table
+    expect(screen.getAllByText('high').length).toBeGreaterThan(0);
     // Check for URL display
     expect(screen.getByText('https://example.com/page')).toBeInTheDocument();
   });

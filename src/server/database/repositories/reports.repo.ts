@@ -382,6 +382,14 @@ export const reportsRepo = {
     total: number;
     byStatus: Record<ReportStatus, number>;
     byPriority: Record<ReportPriority, number>;
+    byPriorityDetail: Record<ReportPriority, { total: number; pending: number; resolved: number }>;
+    byReporter: Array<{
+      email: string | null;
+      name: string | null;
+      total: number;
+      pending: number;
+      resolved: number;
+    }>;
   }> {
     const db = getDb();
     const whereClause = projectId ? 'WHERE project_id = ?' : '';
@@ -401,13 +409,47 @@ export const reportsRepo = {
       )
       .all(...params) as { status: ReportStatus; count: number }[];
 
+    // 优先级聚合：同时返回总数 + 待处理（open + in_progress）+ 已解决（resolved + closed）
     const priorityRows = db
       .query(
         `
-      SELECT priority, COUNT(*) as count FROM reports ${whereClause} GROUP BY priority
+      SELECT priority,
+        COUNT(*) AS total,
+        SUM(CASE WHEN status IN ('open','in_progress') THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN status IN ('resolved','closed') THEN 1 ELSE 0 END) AS resolved
+      FROM reports ${whereClause}
+      GROUP BY priority
     `,
       )
-      .all(...params) as { priority: ReportPriority; count: number }[];
+      .all(...params) as {
+        priority: ReportPriority;
+        total: number;
+        pending: number;
+        resolved: number;
+      }[];
+
+    // 按反馈人聚合（reporter_email 为主键，空值合并为 anonymous 桶）
+    const reporterRows = db
+      .query(
+        `
+      SELECT
+        reporter_email AS email,
+        MAX(reporter_name) AS name,
+        COUNT(*) AS total,
+        SUM(CASE WHEN status IN ('open','in_progress') THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN status IN ('resolved','closed') THEN 1 ELSE 0 END) AS resolved
+      FROM reports ${whereClause}
+      GROUP BY COALESCE(reporter_email, '')
+      ORDER BY total DESC, email ASC
+    `,
+      )
+      .all(...params) as {
+        email: string | null;
+        name: string | null;
+        total: number;
+        pending: number;
+        resolved: number;
+      }[];
 
     const byStatus: Record<ReportStatus, number> = {
       open: 0,
@@ -426,11 +468,34 @@ export const reportsRepo = {
       high: 0,
       highest: 0,
     };
+    const byPriorityDetail: Record<
+      ReportPriority,
+      { total: number; pending: number; resolved: number }
+    > = {
+      lowest: { total: 0, pending: 0, resolved: 0 },
+      low: { total: 0, pending: 0, resolved: 0 },
+      medium: { total: 0, pending: 0, resolved: 0 },
+      high: { total: 0, pending: 0, resolved: 0 },
+      highest: { total: 0, pending: 0, resolved: 0 },
+    };
     for (const row of priorityRows) {
-      byPriority[row.priority] = row.count;
+      byPriority[row.priority] = row.total;
+      byPriorityDetail[row.priority] = {
+        total: row.total,
+        pending: row.pending,
+        resolved: row.resolved,
+      };
     }
 
-    return { total, byStatus, byPriority };
+    const byReporter = reporterRows.map((row) => ({
+      email: row.email && row.email.length > 0 ? row.email : null,
+      name: row.name && row.name.length > 0 ? row.name : null,
+      total: row.total,
+      pending: row.pending,
+      resolved: row.resolved,
+    }));
+
+    return { total, byStatus, byPriority, byPriorityDetail, byReporter };
   },
 
   /**

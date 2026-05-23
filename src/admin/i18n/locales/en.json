@@ -81,7 +81,14 @@
     "recentReports": "Recent Reports",
     "viewAll": "View all",
     "noReports": "No reports yet",
-    "closed": "Closed"
+    "closed": "Closed",
+    "byPriorityTitle": "By Priority",
+    "byReporterTitle": "By Reporter",
+    "priority": "Priority",
+    "reporter": "Reporter",
+    "pending": "Pending",
+    "anonymous": "Anonymous",
+    "noReporterData": "No reporter data"
   },
   "reports": {
     "title": "Reports",
