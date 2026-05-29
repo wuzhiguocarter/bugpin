@@ -1,4 +1,5 @@
 import { reportsRepo, type CreateReportData } from '../database/repositories/reports.repo.js';
+import { getDb } from '../database/database.js';
 import { projectsRepo } from '../database/repositories/projects.repo.js';
 import { filesRepo } from '../database/repositories/files.repo.js';
 import { saveFile, deleteReportFiles, readFile, validateFile } from '../storage/files.js';
@@ -110,6 +111,61 @@ function normalizeOptionalText(value: string | undefined): string | undefined {
 function normalizeOptionalUrl(value: string | undefined): string | undefined {
   const normalized = value ? normalizeUrl(value) : '';
   return normalized || undefined;
+}
+
+/**
+ * 从 URL 提取「一级页面名」作为 module。
+ * 规则：
+ *   1. 优先解析 hash 路由（SPA 常用），如 `https://app.com/#/sample/list` → `sample`
+ *   2. 否则用 pathname 第一段，如 `https://app.com/reports/abc` → `reports`
+ *   3. 跳过常见框架前缀（admin/app/main 等单词不算页面），继续往下取
+ *   4. URL 解码 + 去掉 query/hash
+ * 取不到返回 null。
+ *
+ * lula 2026-05-28：反馈模块 = 用户当前所在一级页面，纯 URL 推导，不依赖 document.title
+ * （title 经常被产品加后缀污染，URL 路径更稳定）。
+ */
+const SKIP_PATH_SEGMENTS = new Set(['admin', 'app', 'main', 'index', 'pages', 'page']);
+
+export function derivePageName(url: string): string | null {
+  if (!url) return null;
+
+  let pathname = '';
+  try {
+    const u = new URL(url);
+    // hash 路由优先：#/foo/bar
+    if (u.hash && u.hash.startsWith('#/')) {
+      pathname = u.hash.slice(1); // 去掉 #
+    } else {
+      pathname = u.pathname;
+    }
+  } catch {
+    // 不是完整 URL，去掉 query/hash 当 path 处理
+    pathname = url.split('?')[0].split('#')[0];
+  }
+
+  const segments = pathname
+    .split('/')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => {
+      try {
+        return decodeURIComponent(s);
+      } catch {
+        return s;
+      }
+    });
+
+  for (const seg of segments) {
+    if (SKIP_PATH_SEGMENTS.has(seg.toLowerCase())) continue;
+    return seg;
+  }
+  return null;
+}
+
+/** @deprecated 改用 derivePageName(url) */
+export function deriveModuleFromUrl(url: string): string | null {
+  return derivePageName(url);
 }
 
 function determineFileType(mimeType: string): FileType {
@@ -265,7 +321,7 @@ async function createForProject(
   }
 
   // F1: 按项目的 moduleRules 推导反馈模块。第一个 pageUrl.includes(pattern) 命中的赢；
-  // 都不命中则 null（admin 列表显示「未分类」）。
+  // 都不命中则回退到从 URL 提取一级页面名。
   const pageUrl = input.metadata?.url ?? '';
   const moduleRules = project.settings?.moduleRules ?? [];
   let derivedModule: string | null = null;
@@ -274,6 +330,10 @@ async function createForProject(
       derivedModule = rule.module;
       break;
     }
+  }
+  // lula 2026-05-28: moduleRules 未配 / 都不命中时，从 URL 推「一级页面名」
+  if (!derivedModule) {
+    derivedModule = derivePageName(pageUrl);
   }
 
   const reportData: CreateReportData = {
@@ -849,3 +909,56 @@ export const reportsService = {
     return Result.ok({ file, data });
   },
 };
+
+/**
+ * 一次性回填：把 module IS NULL 的历史 reports 按 metadata.url 推导 module。
+ * 用 migrations 表中一个 sentinel 记录（`_backfill_module_from_url_v1`）保证只跑一次。
+ * lula 2026-05-28：早期没配 moduleRules 导致整列 -，现在加 URL pathname fallback 后回填历史。
+ */
+export async function backfillModuleFromUrl(): Promise<void> {
+  const db = getDb();
+  const SENTINEL = '_backfill_module_from_url_v1';
+
+  // 确保 migrations 表存在（runMigrations 已建好）；
+  const already = db
+    .query('SELECT 1 FROM migrations WHERE name = ?')
+    .get(SENTINEL) as { 1?: number } | null;
+  if (already) {
+    logger.debug('Skipping module backfill (already applied)');
+    return;
+  }
+
+  const rows = db
+    .query(
+      `SELECT id, metadata FROM reports WHERE module IS NULL OR module = ''`,
+    )
+    .all() as { id: string; metadata: string }[];
+
+  let updated = 0;
+  let skipped = 0;
+  for (const row of rows) {
+    try {
+      const meta = JSON.parse(row.metadata) as ReportMetadata;
+      const derived = derivePageName(meta?.url ?? '');
+      if (derived) {
+        db.run(
+          `UPDATE reports SET module = ?, updated_at = datetime('now') WHERE id = ?`,
+          [derived, row.id],
+        );
+        updated++;
+      } else {
+        skipped++;
+      }
+    } catch (error) {
+      logger.warn('Failed to backfill module for report', { reportId: row.id, error });
+      skipped++;
+    }
+  }
+
+  db.run('INSERT INTO migrations (name) VALUES (?)', [SENTINEL]);
+  logger.info('Module backfill complete', {
+    total: rows.length,
+    updated,
+    skipped,
+  });
+}
