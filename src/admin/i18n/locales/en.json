@@ -134,6 +134,7 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Add context, reproduction notes, or customer details",
     "assigneeLabel": "Assignee",
+    "assignToMe": "Assign to me",
     "useProjectDefault": "Use project default",
     "channelLabel": "Channel",
     "noChannel": "No channel",

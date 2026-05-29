@@ -1,6 +1,7 @@
 import { createApp } from './app.js';
 import { initDatabase, initSchema, runMigrations, closeDatabase } from './database/database.js';
 import { authService } from './services/auth.service.js';
+import { backfillModuleFromUrl } from './services/reports.service.js';
 import { cleanupService } from './services/cleanup.service.js';
 import { syncQueueService } from './services/integrations/sync-queue.service.js';
 import { settingsCacheService } from './services/settings-cache.service.js';
@@ -40,6 +41,13 @@ async function main(): Promise<void> {
   } catch (error) {
     logger.error('Failed to run migrations', error);
     process.exit(1);
+  }
+
+  // 一次性回填：把历史 reports 的 module 按 URL 推导出来（用 migrations 表 sentinel 防重跑）
+  try {
+    await backfillModuleFromUrl();
+  } catch (error) {
+    logger.warn('Module backfill failed (non-fatal)', { error });
   }
 
   // Warm up settings cache (fail-fast if DB unavailable)

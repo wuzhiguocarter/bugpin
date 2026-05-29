@@ -66,6 +66,7 @@ interface Project {
 
 const PROJECT_DEFAULT_ASSIGNEE = '__project_default__';
 const UNASSIGNED_ASSIGNEE = '__unassigned__';
+const ASSIGN_TO_ME = '__assign_to_me__';
 const NO_CHANNEL = '__none__';
 
 interface CreateReportFormState {
@@ -329,6 +330,22 @@ export function Reports() {
     bulkUpdateMutation.mutate({
       ids: Array.from(selectedIds),
       updates: { status: newStatus },
+    });
+  };
+
+  // lula 2026-05-28：指派列内联可编辑（含「指派给我」快捷项，复用 bulkUpdateMutation 单元素分支）
+  const handleAssigneeChange = (reportId: string, value: string) => {
+    let assignedTo: string | null;
+    if (value === UNASSIGNED_ASSIGNEE) {
+      assignedTo = null;
+    } else if (value === ASSIGN_TO_ME && user?.id) {
+      assignedTo = user.id;
+    } else {
+      assignedTo = value;
+    }
+    bulkUpdateMutation.mutate({
+      ids: [reportId],
+      updates: { assignedTo },
     });
   };
 
@@ -971,6 +988,8 @@ export function Reports() {
                   aria-label={t('reports.report')}
                 />
               </TableHead>
+              {/* lula 2026-05-28：ID 序号列（按当前页计算） */}
+              <TableHead className="w-[60px] text-muted-foreground">#</TableHead>
               <TableHead>{t('reports.report')}</TableHead>
               <TableHead>{t('reports.project')}</TableHead>
               <TableHead>{t('dashboard.reporter')}</TableHead>
@@ -987,18 +1006,18 @@ export function Reports() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12">
+                <TableCell colSpan={11} className="text-center py-12">
                   <Spinner className="mx-auto text-primary" />
                 </TableCell>
               </TableRow>
             ) : data?.data?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={11} className="text-center py-12 text-muted-foreground">
                   {t('reports.noReportsFound')}
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data?.map((report: Report) => (
+              data?.data?.map((report: Report, index: number) => (
                 <TableRow
                   key={report.id}
                   className={`cursor-pointer hover:bg-muted/50 ${selectedIds.has(report.id) ? 'bg-muted/30' : ''}`}
@@ -1010,6 +1029,10 @@ export function Reports() {
                       onCheckedChange={(checked) => handleSelectOne(report.id, checked as boolean)}
                       aria-label={t('reports.selectReport', { title: report.title })}
                     />
+                  </TableCell>
+                  {/* lula 2026-05-28：ID 序号（按当前页 + index 计算） */}
+                  <TableCell className="text-muted-foreground text-sm tabular-nums">
+                    {(data.page - 1) * (data.limit ?? 20) + index + 1}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -1062,8 +1085,37 @@ export function Reports() {
                   <TableCell>
                     <PriorityBadge priority={report.priority} />
                   </TableCell>
-                  <TableCell>
-                    <AssigneeDisplay user={report.assignee} compact />
+                  {/* lula 2026-05-28：指派列改可点击 Select，支持「指派给我」+ 选其他人 */}
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {canManageReports ? (
+                      <Select
+                        value={report.assignedTo || UNASSIGNED_ASSIGNEE}
+                        onValueChange={(value) => handleAssigneeChange(report.id, value)}
+                      >
+                        <SelectTrigger className="h-8 w-[140px] text-xs">
+                          <SelectValue asChild>
+                            <AssigneeDisplay user={report.assignee} compact />
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {user?.id && report.assignedTo !== user.id && (
+                            <SelectItem value={ASSIGN_TO_ME}>
+                              {t('reports.assignToMe')}
+                            </SelectItem>
+                          )}
+                          <SelectItem value={UNASSIGNED_ASSIGNEE}>
+                            {t('common.unassigned')}
+                          </SelectItem>
+                          {assignableUsers.map((assignee) => (
+                            <SelectItem key={assignee.id} value={assignee.id}>
+                              {assignee.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <AssigneeDisplay user={report.assignee} compact />
+                    )}
                   </TableCell>
                   <TableCell>
                     <GitHubSyncIcon report={report} />

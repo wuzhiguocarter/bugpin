@@ -134,6 +134,7 @@
     "descriptionLabel": "描述",
     "descriptionPlaceholder": "添加上下文、复现步骤或客户详情",
     "assigneeLabel": "处理人",
+    "assignToMe": "指派给我",
     "useProjectDefault": "使用项目默认",
     "channelLabel": "渠道",
     "noChannel": "无渠道",
