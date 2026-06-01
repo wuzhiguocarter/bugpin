@@ -77,10 +77,12 @@ async function attachDefaultProjectsToMany(users: User[]): Promise<User[]> {
 
 export const usersService = {
   /**
-   * Whether a user can be assigned to a report
+   * Whether a user can be assigned to a report.
+   * lula 2026-06-01: 放宽到只看 is_active，与 findAssignable 一致。
+   * 邀请未接受的人 is_active=0 会自动排除；admin 后台手动激活的人不应该被邀请门挡住。
    */
   isAssignable(user: User): boolean {
-    return user.isActive && (!user.invitationSentAt || !!user.invitationAcceptedAt);
+    return user.isActive;
   },
 
   /**
@@ -180,13 +182,7 @@ export const usersService = {
       return Result.fail('Assigned user must be active', 'USER_INACTIVE');
     }
 
-    if (user.invitationSentAt && !user.invitationAcceptedAt) {
-      return Result.fail(
-        'Assigned user must accept their invitation before they can receive reports',
-        'INVITATION_PENDING',
-      );
-    }
-
+    // lula 2026-06-01: 放宽邀请门——is_active=1 即可指派（与 findAssignable / isAssignable 一致）
     return Result.ok(user);
   },
 
@@ -223,8 +219,8 @@ export const usersService = {
     }
 
     const updatedIsActive = input.isActive ?? existing.isActive;
-    const willBeAssignable =
-      updatedIsActive && (!existing.invitationSentAt || !!existing.invitationAcceptedAt);
+    // lula 2026-06-01: 放宽——is_active=1 即可指派（与 isAssignable / findAssignable 一致）
+    const willBeAssignable = updatedIsActive;
     let selectedProjectIds: Set<string> | undefined;
     let projectsForDefaults:
       | Array<Awaited<ReturnType<typeof projectsRepo.findAll>>[number]>
