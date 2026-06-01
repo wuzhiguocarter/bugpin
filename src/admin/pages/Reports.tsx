@@ -981,8 +981,8 @@ export function Reports() {
                   aria-label={t('reports.report')}
                 />
               </TableHead>
-              {/* lula 2026-05-28：ID 序号列（按当前页计算） */}
-              <TableHead className="w-[60px] text-muted-foreground">#</TableHead>
+              {/* lula 2026-06-01：稳定 ID 列（取 report.id 后 8 位 hex），用户在沟通时引用 */}
+              <TableHead className="w-[100px] text-muted-foreground">ID</TableHead>
               <TableHead>{t('reports.report')}</TableHead>
               <TableHead>{t('reports.project')}</TableHead>
               <TableHead>{t('dashboard.reporter')}</TableHead>
@@ -1010,7 +1010,7 @@ export function Reports() {
                 </TableCell>
               </TableRow>
             ) : (
-              data?.data?.map((report: Report, index: number) => (
+              data?.data?.map((report: Report) => (
                 <TableRow
                   key={report.id}
                   className={`cursor-pointer hover:bg-muted/50 ${selectedIds.has(report.id) ? 'bg-muted/30' : ''}`}
@@ -1023,9 +1023,17 @@ export function Reports() {
                       aria-label={t('reports.selectReport', { title: report.title })}
                     />
                   </TableCell>
-                  {/* lula 2026-05-28：ID 序号（按当前页 + index 计算） */}
-                  <TableCell className="text-muted-foreground text-sm tabular-nums">
-                    {(data.page - 1) * (data.limit ?? 20) + index + 1}
+                  {/* lula 2026-06-01：稳定 issue ID（report.id 是 `rpt_<32hex>`，取前 8 位 hex） */}
+                  <TableCell
+                    className="text-muted-foreground text-xs font-mono tabular-nums"
+                    title={report.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigator.clipboard?.writeText(report.id);
+                      toast.success(t('reports.idCopied'));
+                    }}
+                  >
+                    {report.id.split('_')[1]?.slice(0, 8) ?? report.id.slice(0, 8)}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 flex-wrap">

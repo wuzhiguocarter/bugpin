@@ -141,11 +141,10 @@ export const usersRepo = {
    */
   async findAssignable(): Promise<User[]> {
     const db = getDb();
-    // lula 2026-06-01: 之前要求 invitation_accepted 才算可指派；但 admin 后台手动建/激活的
-    // 账号（如 imluli.me@gmail.com）一直被排除。is_active=1 本身已经够了——
-    // 邀请未接受的人 is_active=0 会被自动排除。
+    // lula 2026-06-01: 「先能用就行」，完全去掉过滤，所有用户都能被指派。
+    // 之前的 invitation 门 + is_active 门导致 admin 手动建/激活的账号被排除，反复踩坑。
     const rows = db
-      .query(`SELECT * FROM users WHERE is_active = 1 ORDER BY name ASC`)
+      .query(`SELECT * FROM users ORDER BY name ASC`)
       .all() as UserRow[];
     return rows.map(mapRowToUser);
   },
