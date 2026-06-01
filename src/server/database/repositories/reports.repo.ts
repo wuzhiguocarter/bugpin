@@ -42,6 +42,7 @@ interface ReportRow {
   github_synced_at: string | null;
   module: string | null;
   type: ReportType | null;
+  seq: number | null;
   assignee_id?: string | null;
   assignee_name?: string | null;
   assignee_email?: string | null;
@@ -91,6 +92,7 @@ function mapRowToReport(row: ReportRow & { project_name?: string }): Report {
     module: row.module ?? null,
     // F2: type 兜底 'other'，老库未跑 migration 时 type 列可能为 null
     type: row.type ?? 'other',
+    seq: row.seq ?? undefined,
   };
 }
 
@@ -108,31 +110,48 @@ export const reportsRepo = {
     const id = generateReportId();
     const now = new Date().toISOString();
 
-    db.run(
-      `INSERT INTO reports (
-        id, project_id, source, title, description, status, priority,
-        annotations, metadata, reporter_email, reporter_name, assigned_to,
-        module, type, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        data.projectId,
-        data.source ?? 'widget',
-        data.title,
-        data.description ?? null,
-        'open',
-        data.priority ?? 'medium',
-        data.annotations ? JSON.stringify(data.annotations) : null,
-        JSON.stringify(data.metadata),
-        data.reporterEmail ?? null,
-        data.reporterName ?? null,
-        data.assignedTo ?? null,
-        data.module ?? null,
-        data.type ?? 'other',
-        now,
-        now,
-      ],
-    );
+    // lula 2026-06-01: per-project 自增 seq，便于沟通时引用「MIGE-7」短编号。
+    // 用事务保证并发安全；UNIQUE(project_id, seq) 索引兜底防 race。
+    db.exec('BEGIN');
+    try {
+      const seqRow = db
+        .query<{ next: number }, [string]>(
+          `SELECT COALESCE(MAX(seq), 0) + 1 AS next FROM reports WHERE project_id = ?`,
+        )
+        .get(data.projectId);
+      const seq = seqRow?.next ?? 1;
+
+      db.run(
+        `INSERT INTO reports (
+          id, project_id, source, title, description, status, priority,
+          annotations, metadata, reporter_email, reporter_name, assigned_to,
+          module, type, seq, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          data.projectId,
+          data.source ?? 'widget',
+          data.title,
+          data.description ?? null,
+          'open',
+          data.priority ?? 'medium',
+          data.annotations ? JSON.stringify(data.annotations) : null,
+          JSON.stringify(data.metadata),
+          data.reporterEmail ?? null,
+          data.reporterName ?? null,
+          data.assignedTo ?? null,
+          data.module ?? null,
+          data.type ?? 'other',
+          seq,
+          now,
+          now,
+        ],
+      );
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
 
     const report = await this.findById(id);
     if (!report) {
