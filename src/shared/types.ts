@@ -84,6 +84,7 @@ export interface Report {
   id: string;
   projectId: string;
   projectName?: string; // Only populated in list queries with JOIN
+  seq?: number; // lula 2026-06-01: per-project 自增序号，用于沟通时引用「MIGE-7」
   source: ReportSource;
   title: string;
   description?: string;

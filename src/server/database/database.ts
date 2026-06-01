@@ -168,7 +168,8 @@ export async function initSchema(): Promise<void> {
       github_issue_url TEXT NULL,
       github_synced_at TEXT NULL,
       module TEXT,
-      type TEXT DEFAULT 'other' NOT NULL CHECK(type IN ('bug', 'feature', 'ux', 'other'))
+      type TEXT DEFAULT 'other' NOT NULL CHECK(type IN ('bug', 'feature', 'ux', 'other')),
+      seq INTEGER
     )
   `);
 
@@ -191,6 +192,13 @@ export async function initSchema(): Promise<void> {
   // 所以 ALTER 出来的列是 nullable，migration 004 会 backfill 历史行的 type 为 'other'
   try {
     db.exec(`ALTER TABLE reports ADD COLUMN type TEXT`);
+  } catch {
+    // Column already exists
+  }
+
+  // lula 2026-06-01: per-project 自增 seq；fresh init 走上面 CREATE TABLE；老库走 migration 006
+  try {
+    db.exec(`ALTER TABLE reports ADD COLUMN seq INTEGER`);
   } catch {
     // Column already exists
   }

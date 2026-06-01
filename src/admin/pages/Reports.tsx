@@ -1023,17 +1023,18 @@ export function Reports() {
                       aria-label={t('reports.selectReport', { title: report.title })}
                     />
                   </TableCell>
-                  {/* lula 2026-06-01：稳定 issue ID（report.id 是 `rpt_<32hex>`，取前 8 位 hex） */}
+                  {/* lula 2026-06-01：稳定 issue ID = 项目缩写 + 自增序号（如 MIGE-7），便于沟通时引用 */}
                   <TableCell
-                    className="text-muted-foreground text-xs font-mono tabular-nums"
-                    title={report.id}
+                    className="text-foreground text-xs font-mono tabular-nums whitespace-nowrap"
+                    title={`${report.id}（点击复制）`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigator.clipboard?.writeText(report.id);
+                      const display = formatReportShortId(report);
+                      navigator.clipboard?.writeText(display);
                       toast.success(t('reports.idCopied'));
                     }}
                   >
-                    {report.id.split('_')[1]?.slice(0, 8) ?? report.id.slice(0, 8)}
+                    {formatReportShortId(report)}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -1194,6 +1195,25 @@ function TypeBadge({ type }: { type: string }) {
       {i18next.t(`reports.type_${type}`)}
     </Badge>
   );
+}
+
+/**
+ * 列表显示用的短 ID：`<项目缩写>-<seq>`，如 `MIGE-7`。
+ * - 项目缩写：projectName 全字母数字部分，去空格后取前 8 个字符大写
+ * - 没有 seq 的旧数据：回退到 report.id 的前 8 位 hex
+ * lula 2026-06-01
+ */
+function formatReportShortId(report: Report): string {
+  const seq = report.seq;
+  const code = (report.projectName ?? '')
+    .replace(/\s+/g, '')
+    .replace(/[^\p{L}\p{N}]/gu, '')
+    .slice(0, 8)
+    .toUpperCase();
+  if (typeof seq === 'number' && code) return `${code}-${seq}`;
+  if (typeof seq === 'number') return `#${seq}`;
+  // 兜底：老数据 seq=null
+  return report.id.split('_')[1]?.slice(0, 8) ?? report.id.slice(0, 8);
 }
 
 function formatDate(dateString: string): string {
