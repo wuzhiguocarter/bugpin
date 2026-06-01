@@ -66,7 +66,6 @@ interface Project {
 
 const PROJECT_DEFAULT_ASSIGNEE = '__project_default__';
 const UNASSIGNED_ASSIGNEE = '__unassigned__';
-const ASSIGN_TO_ME = '__assign_to_me__';
 const NO_CHANNEL = '__none__';
 
 interface CreateReportFormState {
@@ -334,26 +333,9 @@ export function Reports() {
     });
   };
 
-  // lula 2026-05-28：指派列内联可编辑（含「指派给我」快捷项，复用 bulkUpdateMutation 单元素分支）
+  // lula 2026-06-01：指派列内联可编辑，直接从 assignableUsers 选（含自己），不再用 ASSIGN_TO_ME 特殊项
   const handleAssigneeChange = (reportId: string, value: string) => {
-    let assignedTo: string | null;
-    if (value === UNASSIGNED_ASSIGNEE) {
-      assignedTo = null;
-    } else if (value === ASSIGN_TO_ME) {
-      // user.id 必须存在；否则禁止提交（避免把 sentinel 字符串发到后端）
-      if (!user?.id) {
-        toast.error(t('reports.failedUpdate'));
-        return;
-      }
-      assignedTo = user.id;
-    } else if (value && !value.startsWith('__')) {
-      // 必须是真实 user id（不是任何 sentinel）
-      assignedTo = value;
-    } else {
-      // 兜底：未识别的 sentinel（不该发生），直接放弃
-      return;
-    }
-
+    const assignedTo: string | null = value === UNASSIGNED_ASSIGNEE ? null : value;
     bulkUpdateMutation.mutate({
       ids: [reportId],
       updates: { assignedTo },
@@ -1096,7 +1078,7 @@ export function Reports() {
                   <TableCell>
                     <PriorityBadge priority={report.priority} />
                   </TableCell>
-                  {/* lula 2026-05-28：指派列改可点击 Select，支持「指派给我」+ 选其他人 */}
+                  {/* lula 2026-05-28：指派列改可点击 Select，直接列出所有可指派用户（含自己） */}
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     {canManageReports ? (
                       <Select
@@ -1104,22 +1086,17 @@ export function Reports() {
                         onValueChange={(value) => handleAssigneeChange(report.id, value)}
                       >
                         <SelectTrigger className="h-8 w-[140px] text-xs">
-                          <SelectValue asChild>
-                            <AssigneeDisplay user={report.assignee} compact />
-                          </SelectValue>
+                          <SelectValue placeholder={t('common.unassigned')} />
                         </SelectTrigger>
                         <SelectContent>
-                          {user?.id && report.assignedTo !== user.id && (
-                            <SelectItem value={ASSIGN_TO_ME}>
-                              {t('reports.assignToMe')}
-                            </SelectItem>
-                          )}
                           <SelectItem value={UNASSIGNED_ASSIGNEE}>
                             {t('common.unassigned')}
                           </SelectItem>
                           {assignableUsers.map((assignee) => (
                             <SelectItem key={assignee.id} value={assignee.id}>
-                              {assignee.name}
+                              {assignee.id === user?.id
+                                ? `${assignee.name}（${t('reports.you')}）`
+                                : assignee.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
