@@ -267,8 +267,9 @@ export function Reports() {
         );
       }
     },
-    onError: () => {
-      toast.error(t('reports.failedUpdate'));
+    onError: (error) => {
+      // lula 2026-05-28：把后端的真实错误冒出来，方便定位指派失败的具体原因
+      toast.error(getApiErrorMessage(error, t('reports.failedUpdate')));
     },
   });
 
@@ -338,11 +339,21 @@ export function Reports() {
     let assignedTo: string | null;
     if (value === UNASSIGNED_ASSIGNEE) {
       assignedTo = null;
-    } else if (value === ASSIGN_TO_ME && user?.id) {
+    } else if (value === ASSIGN_TO_ME) {
+      // user.id 必须存在；否则禁止提交（避免把 sentinel 字符串发到后端）
+      if (!user?.id) {
+        toast.error(t('reports.failedUpdate'));
+        return;
+      }
       assignedTo = user.id;
-    } else {
+    } else if (value && !value.startsWith('__')) {
+      // 必须是真实 user id（不是任何 sentinel）
       assignedTo = value;
+    } else {
+      // 兜底：未识别的 sentinel（不该发生），直接放弃
+      return;
     }
+
     bulkUpdateMutation.mutate({
       ids: [reportId],
       updates: { assignedTo },
